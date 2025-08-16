@@ -36,7 +36,7 @@ if (import.meta.env.DEV && !auth.config.emulator) {
   }
 }
 
-if (import.meta.env.DEV && !db._delegate._databaseId.projectId.includes('localhost')) {
+if (import.meta.env.DEV) {
   try {
     connectFirestoreEmulator(db, 'localhost', 8080);
   } catch (error) {
