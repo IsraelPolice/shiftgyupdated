@@ -52,7 +52,6 @@ export default function OnboardingPage() {
     activationType: 'trial'
   });
   
-  const { t, language } = useLanguage();
   const { t, language, setLanguage } = useLanguage();
   const navigate = useNavigate();
   const { formatCurrency, convertCurrency } = useCurrency();
