@@ -264,11 +264,13 @@ export default function OnboardingPage() {
       
       // Handle specific Firebase errors
       if (error.code === 'auth/email-already-in-use') {
-        setError('An account with this email already exists. Please use a different email or try logging in.');
+        setError('An account with this email already exists. Please use a different email or navigate to the login page to sign in with your existing account.');
       } else if (error.code === 'auth/weak-password') {
         setError('Password is too weak. Please choose a stronger password.');
       } else if (error.code === 'auth/invalid-email') {
         setError('Please enter a valid email address.');
+      } else if (error.message && error.message.includes('Missing or insufficient permissions')) {
+        setError('Database permissions error. Please contact support or check that Firebase security rules allow creation of companies, presenceSettings, and breakSettings collections.');
       } else {
         setError('Failed to create account. Please try again or contact support.');
       }
