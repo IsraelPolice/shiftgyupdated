@@ -1,0 +1,1502 @@
+/* Import modern overrides */
+@import './styles/modern-overrides.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Dark mode styles */
+.dark {
+  --tw-bg-opacity: 1;
+  --tw-text-opacity: 1;
+  color-scheme: dark;
+  
+  /* Chart tooltip variables */
+  --tooltip-bg: #1f2937;
+  --tooltip-text: #f9fafb;
+  --tooltip-border: #374151;
+  --tooltip-label: #d1d5db;
+  
+  /* Enhanced dark mode text colors */
+  --text-primary: #ffffff;
+  --text-secondary: #e5e7eb;
+  --text-muted: #9ca3af;
+  --bg-primary: #1f2937;
+  --bg-secondary: #374151;
+  --bg-card: #2d3748;
+}
+
+/* Base styles for dark mode */
+.dark body {
+  @apply bg-gray-900 text-gray-100;
+}
+
+.dark .bg-white {
+  @apply bg-gray-800;
+}
+
+/* Fix for schedule header in dark mode */
+.dark .schedule-header {
+  background-color: #1f2937; /* dark:bg-gray-800 */
+  color: #f9fafb; /* dark:text-gray-100 */
+}
+
+.dark .bg-gray-50 {
+  @apply bg-gray-900;
+}
+
+.dark .bg-gray-100 {
+  @apply bg-gray-800;
+}
+
+.dark .text-gray-900 {
+  @apply text-gray-100;
+}
+
+.dark .text-gray-800 {
+  @apply text-gray-200;
+}
+
+.dark .text-gray-700 {
+  @apply text-gray-300;
+}
+
+.dark .text-gray-600 {
+  @apply text-gray-400;
+}
+
+.dark .text-gray-500 {
+  @apply text-gray-400;
+}
+
+/* Light mode chart tooltip variables */
+:root {
+  --tooltip-bg: white;
+  --tooltip-text: #1f2937;
+  --tooltip-border: #e5e7eb;
+  --tooltip-label: #4b5563;
+}
+
+.dark .border-gray-200 {
+  @apply border-gray-700;
+}
+
+.dark .border-gray-100 {
+  @apply border-gray-800;
+}
+
+.dark .shadow-sm {
+  @apply shadow-gray-900;
+}
+
+/* Card and input styles for dark mode */
+.dark .bg-white.rounded-xl {
+  @apply bg-gray-800 border-gray-700;
+}
+
+.dark input, 
+.dark select, 
+.dark textarea {
+  @apply bg-gray-700 border-gray-600 text-gray-100;
+}
+
+/* Enhanced input focus states for dark mode */
+.dark input:focus,
+.dark select:focus,
+.dark textarea:focus {
+  @apply bg-gray-700 border-blue-500 text-white ring-blue-500;
+}
+
+/* Placeholder text in dark mode */
+.dark input::placeholder,
+.dark textarea::placeholder {
+  @apply text-gray-400;
+}
+.dark button.bg-blue-600 {
+  @apply bg-blue-700 hover:bg-blue-800;
+}
+
+.dark button.border-gray-300 {
+  @apply border-gray-600 text-gray-300 hover:bg-gray-700;
+}
+
+/* Enhanced dropdown and menu styles for dark mode */
+.dark .dropdown-menu,
+.dark .nav-menu {
+  @apply bg-gray-800 border-gray-700;
+}
+
+.dark .dropdown-item,
+.dark .nav-item {
+  @apply text-gray-200 hover:bg-gray-700 hover:text-white;
+}
+
+/* Card content in dark mode */
+.dark .card-content {
+  @apply text-gray-200;
+}
+
+.dark .card-title {
+  @apply text-white;
+}
+
+.dark .card-subtitle {
+  @apply text-gray-300;
+}
+
+/* Table styles for dark mode */
+.dark table {
+  @apply bg-gray-800;
+}
+
+.dark th {
+  @apply bg-gray-700 text-gray-200;
+}
+
+.dark td {
+  @apply text-gray-300 border-gray-700;
+}
+
+.dark tr:hover {
+  @apply bg-gray-700;
+}
+
+/* Modal and overlay styles for dark mode */
+.dark .modal-overlay {
+  @apply bg-gray-900;
+}
+
+.dark .modal-content {
+  @apply bg-gray-800 border-gray-700 text-gray-200;
+}
+
+/* Form labels in dark mode */
+.dark label {
+  @apply text-gray-200;
+}
+
+/* Badge and status indicators in dark mode */
+.dark .badge {
+  @apply text-gray-200;
+}
+
+.dark .status-indicator {
+  @apply text-gray-200;
+}
+/* High contrast mode styles */
+.high-contrast {
+  --tw-bg-opacity: 1;
+  --tw-text-opacity: 1;
+  color-scheme: dark;
+}
+
+.high-contrast body {
+  @apply bg-black text-yellow-300;
+}
+
+.high-contrast .bg-white,
+.high-contrast .bg-gray-50,
+.high-contrast .bg-gray-100,
+.high-contrast .bg-gray-800,
+.high-contrast .bg-gray-900 {
+  @apply bg-black;
+}
+
+.high-contrast .text-gray-900,
+.high-contrast .text-gray-800,
+.high-contrast .text-gray-700,
+.high-contrast .text-gray-600,
+.high-contrast .text-gray-500,
+.high-contrast .text-gray-400,
+.high-contrast .text-gray-300,
+.high-contrast .text-gray-200,
+.high-contrast .text-gray-100 {
+  @apply text-yellow-300;
+}
+
+.high-contrast .border-gray-200,
+.high-contrast .border-gray-100,
+.high-contrast .border-gray-300,
+.high-contrast .border-gray-700,
+.high-contrast .border-gray-800 {
+  @apply border-white border-2;
+}
+
+.high-contrast input, 
+.high-contrast select, 
+.high-contrast textarea {
+  @apply bg-black border-white border-2 text-yellow-300;
+}
+
+.high-contrast button {
+  @apply border-2 border-white;
+}
+
+.high-contrast button.bg-blue-600,
+.high-contrast button.bg-blue-700,
+.high-contrast button.bg-blue-800 {
+  @apply bg-black text-yellow-300 border-white border-2;
+}
+
+.high-contrast a {
+  @apply text-yellow-300 underline;
+}
+
+.high-contrast .shadow-sm,
+.high-contrast .shadow-md,
+.high-contrast .shadow-lg {
+  box-shadow: 0 0 0 2px white;
+}
+
+/* Focus states for accessibility */
+.high-contrast *:focus {
+  @apply outline-4 outline-yellow-300;
+}
+
+/* Ensure proper contrast for buttons and interactive elements */
+.high-contrast button:hover,
+.high-contrast a:hover {
+  @apply bg-yellow-300 text-black;
+}
+
+/* Font support for Hebrew */
+@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap');
+
+/* RTL Support */
+.rtl {
+  direction: rtl;
+  text-align: right;
+}
+
+.rtl input, .rtl textarea, .rtl select {
+  text-align: right;
+}
+
+.rtl .dropdown-menu {
+  left: auto;
+  right: 0;
+}
+
+.rtl .modal {
+  text-align: right;
+}
+
+.rtl .space-x-reverse > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-x-reverse: 1;
+}
+
+.rtl .ltr-content {
+  direction: ltr;
+  text-align: left;
+}
+
+/* RTL-specific adjustments */
+.rtl .ml-1 { margin-left: 0; margin-right: 0.25rem; }
+.rtl .ml-2 { margin-left: 0; margin-right: 0.5rem; }
+.rtl .ml-3 { margin-left: 0; margin-right: 0.75rem; }
+.rtl .ml-4 { margin-left: 0; margin-right: 1rem; }
+.rtl .mr-1 { margin-right: 0; margin-left: 0.25rem; }
+.rtl .mr-2 { margin-right: 0; margin-left: 0.5rem; }
+.rtl .mr-3 { margin-right: 0; margin-left: 0.75rem; }
+.rtl .mr-4 { margin-right: 0; margin-left: 1rem; }
+
+.rtl .pl-2 { padding-left: 0; padding-right: 0.5rem; }
+.rtl .pl-3 { padding-left: 0; padding-right: 0.75rem; }
+.rtl .pl-4 { padding-left: 0; padding-right: 1rem; }
+.rtl .pl-8 { padding-left: 0; padding-right: 2rem; }
+.rtl .pl-10 { padding-left: 0; padding-right: 2.5rem; }
+.rtl .pl-11 { padding-left: 0; padding-right: 2.75rem; }
+.rtl .pr-2 { padding-right: 0; padding-left: 0.5rem; }
+.rtl .pr-3 { padding-right: 0; padding-left: 0.75rem; }
+.rtl .pr-4 { padding-right: 0; padding-left: 1rem; }
+.rtl .pr-8 { padding-right: 0; padding-left: 2rem; }
+.rtl .pr-10 { padding-right: 0; padding-left: 2.5rem; }
+.rtl .pr-11 { padding-right: 0; padding-left: 2.75rem; }
+
+.rtl .left-1 { left: auto; right: 0.25rem; }
+.rtl .left-2 { left: auto; right: 0.5rem; }
+.rtl .left-3 { left: auto; right: 0.75rem; }
+.rtl .left-4 { left: auto; right: 1rem; }
+.rtl .right-1 { right: auto; left: 0.25rem; }
+.rtl .right-2 { right: auto; left: 0.5rem; }
+.rtl .right-3 { right: auto; left: 0.75rem; }
+.rtl .right-4 { right: auto; left: 1rem; }
+.rtl .left-0 { left: auto; right: 0; }
+.rtl .right-0 { right: auto; left: 0; }
+
+.rtl .text-left { text-align: right; }
+.rtl .text-right { text-align: left; }
+
+/* RTL Flexbox adjustments */
+.rtl .justify-end { justify-content: flex-start; }
+.rtl .justify-start { justify-content: flex-end; }
+.rtl .items-end { align-items: flex-start; }
+.rtl .items-start { align-items: flex-end; }
+
+/* RTL Transform adjustments */
+.rtl .translate-x-1\/2 { --tw-translate-x: -50%; }
+.rtl .-translate-x-1\/2 { --tw-translate-x: 50%; }
+.rtl .translate-x-full { --tw-translate-x: -100%; }
+.rtl .-translate-x-full { --tw-translate-x: 100%; }
+
+/* RTL Border radius adjustments */
+.rtl .rounded-l-lg { border-top-left-radius: 0; border-bottom-left-radius: 0; border-top-right-radius: 0.5rem; border-bottom-right-radius: 0.5rem; }
+.rtl .rounded-r-lg { border-top-right-radius: 0; border-bottom-right-radius: 0; border-top-left-radius: 0.5rem; border-bottom-left-radius: 0.5rem; }
+
+/* RTL Grid adjustments */
+.rtl .col-start-1 { grid-column-start: -1; }
+.rtl .col-start-2 { grid-column-start: -2; }
+.rtl .col-start-3 { grid-column-start: -3; }
+.rtl .col-end-1 { grid-column-end: -1; }
+.rtl .col-end-2 { grid-column-end: -2; }
+.rtl .col-end-3 { grid-column-end: -3; }
+
+/* Custom RTL utilities */
+@layer utilities {
+  .rtl-flip {
+    transform: scaleX(-1);
+  }
+  
+  .rtl .rtl-flip {
+    transform: scaleX(1);
+  }
+}
+
+.rtl {
+  font-family: 'Heebo', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+/* Ensure proper text rendering for Hebrew */
+.rtl * {
+  unicode-bidi: embed;
+}
+
+/* Fix for dropdowns and modals in RTL */
+.rtl .absolute.left-0 {
+  left: auto;
+  right: 0;
+}
+
+.rtl .absolute.right-0 {
+  right: auto;
+  left: 0;
+}
+
+/* Fix for tooltips in RTL */
+.rtl .tooltip-arrow {
+  transform: scaleX(-1);
+}
+
+/* Fix for button icons in RTL */
+.rtl button svg + span,
+.rtl a svg + span {
+  margin-left: 0;
+  margin-right: 0.5rem;
+}
+
+/* Fix for search inputs in RTL */
+.rtl .search-input {
+  padding-left: 2rem !important;
+  padding-right: 2.75rem !important;
+}
+
+/* Fix for input fields in RTL mode - ensure text direction is appropriate */
+.rtl input[type="email"],
+.rtl input[type="password"],
+.rtl input[type="text"].email-input {
+  direction: ltr;
+  text-align: left;
+}
+
+/* Add padding for RTL input icons while maintaining LTR text */
+.rtl .input-with-icon-wrapper {
+  direction: rtl;
+}
+
+.rtl .input-with-icon-wrapper input {
+  padding-right: 2.5rem !important;
+  padding-left: 1rem !important;
+}
+
+.rtl .input-with-icon-wrapper .input-icon-left {
+  left: auto;
+  right: 0.75rem;
+}
+
+.rtl .search-input-wrapper .pointer-events-none {
+  left: auto !important;
+  right: 0.75rem !important;
+}
+
+/* Accessibility Styles */
+.high-contrast {
+  filter: contrast(1.5);
+}
+
+.large-text {
+  font-size: 120% !important;
+}
+
+.large-text h1 {
+  font-size: 2.5rem !important;
+}
+
+.large-text h2 {
+  font-size: 2rem !important;
+}
+
+.large-text h3 {
+  font-size: 1.75rem !important;
+}
+
+.large-text p, .large-text span, .large-text div, .large-text button, .large-text input, .large-text select, .large-text textarea {
+  font-size: 1.2rem !important;
+}
+
+.highlight-links a {
+  text-decoration: underline !important;
+  color: #0000EE !important;
+  font-weight: bold !important;
+}
+
+.dyslexia-font {
+  font-family: 'Open Sans', 'Arial', sans-serif !important;
+  letter-spacing: 0.05em !important;
+  word-spacing: 0.1em !important;
+  line-height: 1.5 !important;
+}
+
+.reduce-motion * {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* IMPORTANT: Keep sidebar on left in RTL mode */
+.rtl .clock-button-container {
+  direction: rtl;
+}
+
+/* Ensure proper alignment for form elements in RTL */
+.rtl label {
+  text-align: right;
+}
+
+/* Fix for charts in RTL */
+.rtl .recharts-wrapper {
+  direction: ltr;
+}
+
+/* Refined pulse animation for clock buttons */
+@keyframes refined-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.2;
+  }
+  50% {
+    transform: scale(1.03);
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.2;
+  }
+}
+
+.animate-refined-pulse {
+  animation: refined-pulse 2s infinite ease-in-out;
+}
+
+/* Fix for dashboard greeting in RTL */
+.rtl .dashboard-greeting {
+  line-height: 1.5;
+}
+
+/* IMPORTANT: Keep sidebar on left in RTL mode */
+html[dir="rtl"] .sidebar-container {
+  left: 0 !important;
+  right: auto !important;
+}
+
+/* Fix for main content area to not be covered by sidebar */
+.main-content {
+  width: 100%;
+  transition: all 0.3s ease;
+}
+
+@media (min-width: 1024px) {
+  .main-content {
+    margin-left: 18rem; /* 72px or 288px (w-72) */
+  }
+  
+  .rtl .main-content {
+    margin-left: 0;
+    margin-right: 18rem;
+  }
+}
+
+/* Fix for RTL layout in dashboard */
+.rtl .dashboard-container {
+  direction: rtl;
+}
+
+/* Fix for RTL text alignment in tables */
+.rtl th, 
+.rtl td {
+  text-align: right;
+}
+
+/* Fix for RTL dropdown positioning */
+.rtl .dropdown-menu {
+  right: 0;
+  left: auto;
+}
+
+/* Fix for RTL modal positioning */
+.rtl .modal-content {
+  text-align: right;
+}
+
+/* Fix for RTL form controls */
+.rtl .form-control {
+  text-align: right;
+}
+
+/* Fix for RTL button groups */
+.rtl .btn-group > .btn:first-child {
+  border-top-right-radius: 0.375rem;
+  border-bottom-right-radius: 0.375rem;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.rtl .btn-group > .btn:last-child {
+  border-top-left-radius: 0.375rem;
+  border-bottom-left-radius: 0.375rem;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+/* Fix for RTL list items */
+.rtl ul, 
+.rtl ol {
+  padding-right: 1.5rem;
+  padding-left: 0;
+}
+
+/* Fix for RTL icons in buttons */
+.rtl button svg,
+.rtl a svg {
+  margin-right: 0;
+  margin-left: 0.5rem;
+}
+
+/* Fix for RTL input groups */
+.rtl .input-group-prepend {
+  margin-right: 0;
+  margin-left: -1px;
+}
+
+.rtl .input-group-append {
+  margin-left: 0;
+  margin-right: -1px;
+}
+
+/* Fix for RTL card layout */
+.rtl .card-header,
+.rtl .card-body,
+.rtl .card-footer {
+  text-align: right;
+}
+
+/* Fix for RTL alerts */
+.rtl .alert {
+  text-align: right;
+}
+
+/* Fix for RTL progress bars */
+.rtl .progress-bar {
+  float: right;
+}
+
+/* Fix for RTL pagination */
+.rtl .pagination {
+  padding-right: 0;
+}
+
+.rtl .page-item:first-child .page-link {
+  border-top-right-radius: 0.25rem;
+  border-bottom-right-radius: 0.25rem;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.rtl .page-item:last-child .page-link {
+  border-top-left-radius: 0.25rem;
+  border-bottom-left-radius: 0.25rem;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+/* Fix for RTL breadcrumbs */
+.rtl .breadcrumb-item {
+  float: right;
+}
+
+.rtl .breadcrumb-item + .breadcrumb-item::before {
+  padding-right: 0;
+  padding-left: 0.5rem;
+}
+
+.rtl .breadcrumb-item + .breadcrumb-item {
+  padding-left: 0;
+  padding-right: 0.5rem;
+}
+
+/* Override for mobile sidebar in RTL to keep it on the left */
+.rtl .fixed.inset-0.flex {
+  justify-content: flex-start !important;
+}
+
+.rtl .relative.ml-16 {
+  margin-left: 4rem !important;
+  margin-right: 0 !important;
+}
+
+.rtl .absolute.right-0 {
+  right: 0 !important;
+  left: auto !important;
+}
+
+/* IMPORTANT: Keep dashboard layout consistent in RTL mode */
+.rtl .grid.grid-cols-1.lg\:grid-cols-3.gap-6 {
+  direction: ltr;
+}
+
+/* Ensure presence widget stays on the right side */
+.rtl .grid.grid-cols-1.lg\:grid-cols-3.gap-6 > div {
+  direction: rtl;
+}
+
+/* Fix for search icon position in RTL */
+.rtl .search-icon {
+  right: 0.75rem;
+  left: auto;
+}
+
+/* Fix for mobile sidebar in RTL */
+.rtl .fixed.inset-0.flex > div {
+  left: 0 !important;
+  right: auto !important;
+}
+
+/* Fix for sidebar position in RTL */
+.rtl .lg\:fixed.lg\:inset-y-0.lg\:left-0 {
+  left: 0 !important;
+  right: auto !important;
+}
+
+/* Fix for dashboard grid layout in RTL */
+.rtl .grid-cols-1.lg\:grid-cols-3 {
+  direction: ltr;
+}
+
+/* Fix for dashboard grid items in RTL */
+.rtl .grid-cols-1.lg\:grid-cols-3 > * {
+  direction: rtl;
+}
+
+/* Fix for dashboard grid layout in RTL */
+.rtl .grid-cols-1.lg\:grid-cols-2 {
+  direction: ltr;
+}
+
+/* Fix for dashboard grid items in RTL */
+.rtl .grid-cols-1.lg\:grid-cols-2 > * {
+  direction: rtl;
+}
+
+/* Fix for dashboard grid layout in RTL */
+.rtl .grid-cols-1.md\:grid-cols-2.lg\:grid-cols-4 {
+  direction: ltr;
+}
+
+/* Fix for dashboard grid items in RTL */
+.rtl .grid-cols-1.md\:grid-cols-2.lg\:grid-cols-4 > * {
+  direction: rtl;
+}
+
+/* Fix for dashboard grid layout in RTL */
+.rtl .grid-cols-1.md\:grid-cols-4 {
+  direction: ltr;
+}
+
+/* Fix for dashboard grid items in RTL */
+.rtl .grid-cols-1.md\:grid-cols-4 > * {
+  direction: rtl;
+}
+
+/* Fix for dashboard grid layout in RTL */
+.rtl .grid-cols-1.md\:grid-cols-3 {
+  direction: ltr;
+}
+
+/* Fix for dashboard grid items in RTL */
+.rtl .grid-cols-1.md\:grid-cols-3 > * {
+  direction: rtl;
+}
+
+/* Fix for dashboard grid layout in RTL */
+.rtl .grid-cols-1.md\:grid-cols-2 {
+  direction: ltr;
+}
+
+/* Fix for dashboard grid items in RTL */
+.rtl .grid-cols-1.md\:grid-cols-2 > * {
+  direction: rtl;
+}
+
+/* Fix for dashboard grid layout in RTL */
+.rtl .grid-cols-2.md\:grid-cols-4.lg\:grid-cols-7 {
+  direction: ltr;
+}
+
+/* Fix for dashboard grid items in RTL */
+.rtl .grid-cols-2.md\:grid-cols-4.lg\:grid-cols-7 > * {
+  direction: rtl;
+}
+
+/* Fix for dashboard grid layout in RTL */
+.rtl .grid-cols-1.lg\:flex-row {
+  direction: ltr;
+}
+
+/* Fix for dashboard grid items in RTL */
+.rtl .grid-cols-1.lg\:flex-row > * {
+  direction: rtl;
+}
+
+/* Fix for dashboard flex layout in RTL */
+.rtl .flex.flex-col.lg\:flex-row {
+  direction: ltr;
+}
+
+/* Fix for dashboard flex items in RTL */
+.rtl .flex.flex-col.lg\:flex-row > * {
+  direction: rtl;
+}
+
+/* Fix for dashboard flex layout in RTL */
+.rtl .flex.flex-col.sm\:flex-row {
+  direction: ltr;
+}
+
+/* Fix for dashboard flex items in RTL */
+.rtl .flex.flex-col.sm\:flex-row > * {
+  direction: rtl;
+}
+
+/* Fix for dashboard flex layout in RTL */
+.rtl .flex.flex-col.md\:flex-row {
+  direction: ltr;
+}
+
+/* Fix for dashboard flex items in RTL */
+.rtl .flex.flex-col.md\:flex-row > * {
+  direction: rtl;
+}
+
+/* Fix for dashboard flex layout in RTL */
+.rtl .flex.flex-wrap {
+  direction: ltr;
+}
+
+/* Fix for dashboard flex items in RTL */
+.rtl .flex.flex-wrap > * {
+  direction: rtl;
+}
+
+/* Fix for dashboard flex layout in RTL */
+.rtl .flex.items-center {
+  direction: ltr;
+}
+
+/* Fix for dashboard flex items in RTL */
+.rtl .flex.items-center > * {
+  direction: rtl;
+}
+
+/* Fix for dashboard flex layout in RTL */
+.rtl .flex.justify-between {
+  direction: ltr;
+}
+
+/* Fix for dashboard flex items in RTL */
+.rtl .flex.justify-between > * {
+  direction: rtl;
+}
+
+/* Fix for dashboard flex layout in RTL */
+.rtl .flex.justify-end {
+  direction: ltr;
+}
+
+/* Fix for dashboard flex items in RTL */
+.rtl .flex.justify-end > * {
+  direction: rtl;
+}
+
+/* Fix for dashboard flex layout in RTL */
+.rtl .flex.justify-center {
+  direction: ltr;
+}
+
+/* Fix for dashboard flex items in RTL */
+.rtl .flex.justify-center > * {
+  direction: rtl;
+}
+
+/* Fix for dashboard flex layout in RTL */
+.rtl .flex.items-start {
+  direction: ltr;
+}
+
+/* Fix for dashboard flex items in RTL */
+.rtl .flex.items-start > * {
+  direction: rtl;
+}
+
+/* Fix for dashboard flex layout in RTL */
+.rtl .flex.items-end {
+  direction: ltr;
+}
+
+/* Fix for dashboard flex items in RTL */
+.rtl .flex.items-end > * {
+  direction: rtl;
+}
+
+/* Fix for dashboard flex layout in RTL */
+.rtl .flex.flex-col {
+  direction: ltr;
+}
+
+/* Fix for dashboard flex items in RTL */
+.rtl .flex.flex-col > * {
+  direction: rtl;
+}
+
+/* Fix for dashboard flex layout in RTL */
+.rtl .flex.flex-row {
+  direction: ltr;
+}
+
+/* Fix for dashboard flex items in RTL */
+.rtl .flex.flex-row > * {
+  direction: rtl;
+}
+
+/* Fix for dashboard flex layout in RTL */
+.rtl .flex.flex-1 {
+  direction: ltr;
+}
+
+/* Fix for dashboard flex items in RTL */
+.rtl .flex.flex-1 > * {
+  direction: rtl;
+}
+
+/* Fix for dashboard flex layout in RTL */
+.rtl .flex.flex-auto {
+  direction: ltr;
+}
+
+/* Fix for dashboard flex items in RTL */
+.rtl .flex.flex-auto > * {
+  direction: rtl;
+}
+
+/* Fix for dashboard flex layout in RTL */
+.rtl .flex.flex-initial {
+  direction: ltr;
+}
+
+/* Fix for dashboard flex items in RTL */
+.rtl .flex.flex-initial > * {
+  direction: rtl;
+}
+
+/* Fix for dashboard flex layout in RTL */
+.rtl .flex.flex-none {
+  direction: ltr;
+}
+
+/* Fix for dashboard flex items in RTL */
+.rtl .flex.flex-none > * {
+  direction: rtl;
+}
+
+/* User dropdown styles */
+.user-dropdown {
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-dropdown-menu {
+  min-width: 200px;
+  z-index: 50;
+}
+
+/* Centered navigation styles */
+.centered-nav {
+  display: flex;
+}
+
+/* Settings Page Styles */
+.modern-settings-container {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Sidebar Styles */
+.modern-settings-sidebar {
+  background: white;
+  border-right: 1px solid #e2e8f0;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+.sidebar-header {
+  margin-bottom: 2rem;
+}
+
+.sidebar-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+}
+
+.sidebar-subtitle {
+  font-size: 0.875rem;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.nav-section-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+}
+
+.nav-section-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #64748b;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  width: 100%;
+  text-align: left;
+}
+
+.nav-item:hover {
+  color: #1e293b;
+  background-color: #f1f5f9;
+}
+
+.nav-item.active {
+  color: #4f46e5;
+  background-color: #eef2ff;
+  font-weight: 600;
+}
+
+.nav-item-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+
+.nav-item-text {
+  flex: 1;
+}
+
+/* Main Content Styles */
+.modern-settings-main {
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+.settings-content {
+  max-width: 800px;
+}
+
+.content-header {
+  margin-bottom: 2rem;
+}
+
+.content-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+}
+
+.content-subtitle {
+  font-size: 0.875rem;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+/* Profile Settings Styles */
+.profile-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.profile-card {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 2rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
+}
+
+.avatar-section {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.avatar-container {
+  position: relative;
+}
+
+.avatar-image {
+  width: 5rem;
+  height: 5rem;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #e2e8f0;
+}
+
+.avatar-placeholder {
+  width: 5rem;
+  height: 5rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 600;
+  border: 3px solid #e2e8f0;
+}
+
+.avatar-controls {
+  flex: 1;
+}
+
+.upload-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.upload-button:hover {
+  background-color: #f9fafb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.upload-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.upload-requirements {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-top: 0.5rem;
+  line-height: 1.4;
+}
+
+.upload-info {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin-top: 0.25rem;
+}
+
+/* Form Styles */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.form-input {
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  color: #1f2937;
+  background: white;
+  transition: all 0.2s ease-in-out;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 233, 0.1);
+}
+
+.form-input-disabled {
+  background-color: #f9fafb;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
+.form-select {
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  color: #1f2937;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.form-select:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 233, 0.1);
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.save-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: #4f46e5;
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.save-button:hover {
+  background: #4338ca;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.save-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Settings Section Styles */
+.settings-section {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  margin-bottom: 1.5rem;
+}
+
+.section-header {
+  margin-bottom: 1.5rem;
+}
+
+.section-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 0.25rem;
+}
+
+.section-description {
+  font-size: 0.875rem;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+/* Language Selector */
+.language-selector {
+  max-width: 300px;
+}
+
+/* Theme Options */
+.theme-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.theme-option {
+  position: relative;
+  cursor: pointer;
+}
+
+.theme-radio {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.theme-card {
+  padding: 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.theme-radio:checked + .theme-card {
+  border-color: #4f46e5;
+  background-color: #eef2ff;
+}
+
+.theme-card:hover {
+  background-color: #f9fafb;
+}
+
+.theme-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.25rem;
+}
+
+.theme-description {
+  font-size: 0.75rem;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+/* Company Settings Styles */
+.company-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.logo-section {
+  margin-top: 1rem;
+}
+
+.logo-upload {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.logo-preview {
+  width: 4rem;
+  height: 4rem;
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.logo-icon {
+  width: 2rem;
+  height: 2rem;
+}
+
+/* Appearance Settings Styles */
+.appearance-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Toast Styles */
+.modern-toast,
+.profile-toast,
+.appearance-toast {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  background: #10b981;
+  color: white;
+  padding: 0.75rem 1rem;
+  border-radius: 0.375rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  z-index: 50;
+  animation: slideInFromRight 0.3s ease-out;
+}
+
+.toast-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+
+@keyframes slideInFromRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .modern-settings-sidebar {
+    padding: 1rem;
+    border-right: none;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  
+  .modern-settings-main {
+    padding: 1rem;
+  }
+  
+  .sidebar-nav {
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 1rem;
+  }
+  
+  .nav-section {
+    flex-shrink: 0;
+  }
+  
+  .nav-section-items {
+    flex-direction: row;
+    gap: 0.5rem;
+  }
+  
+  .nav-item {
+    white-space: nowrap;
+    min-width: auto;
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .avatar-section {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+  
+  .theme-options {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Legacy Settings Styles - Keep for backward compatibility */
+.settings-top-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.settings-nav-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+  background-color: transparent;
+  border: 1px solid transparent;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+.settings-nav-item:hover {
+  color: #374151;
+  background-color: #f9fafb;
+}
+
+.settings-nav-item.active {
+  color: #2563eb;
+  background-color: #eff6ff;
+  border-color: #dbeafe;
+}

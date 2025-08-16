@@ -1,0 +1,38 @@
+[
+  { "label": "Israel, Jerusalem – GMT+2", "value": "Asia/Jerusalem" },
+
+  { "label": "United States, New York – GMT-5", "value": "America/New_York" },
+  { "label": "United States, Chicago – GMT-6", "value": "America/Chicago" },
+  { "label": "United States, Denver – GMT-7", "value": "America/Denver" },
+  { "label": "United States, Los Angeles – GMT-8", "value": "America/Los_Angeles" },
+
+  { "label": "Canada, Toronto – GMT-5", "value": "America/Toronto" },
+  { "label": "Canada, Vancouver – GMT-8", "value": "America/Vancouver" },
+
+  { "label": "United Kingdom, London – GMT+0", "value": "Europe/London" },
+  { "label": "Scotland, Edinburgh – GMT+0", "value": "Europe/London" },
+  { "label": "Ireland, Dublin – GMT+0", "value": "Europe/Dublin" },
+
+  { "label": "Germany, Berlin – GMT+1", "value": "Europe/Berlin" },
+  { "label": "France, Paris – GMT+1", "value": "Europe/Paris" },
+  { "label": "Spain, Madrid – GMT+1", "value": "Europe/Madrid" },
+  { "label": "Italy, Rome – GMT+1", "value": "Europe/Rome" },
+  { "label": "Netherlands, Amsterdam – GMT+1", "value": "Europe/Amsterdam" },
+  { "label": "Switzerland, Zurich – GMT+1", "value": "Europe/Zurich" },
+  { "label": "Poland, Warsaw – GMT+1", "value": "Europe/Warsaw" },
+  { "label": "Sweden, Stockholm – GMT+1", "value": "Europe/Stockholm" },
+  { "label": "Norway, Oslo – GMT+1", "value": "Europe/Oslo" },
+  { "label": "Denmark, Copenhagen – GMT+1", "value": "Europe/Copenhagen" },
+  { "label": "Greece, Athens – GMT+2", "value": "Europe/Athens" },
+  { "label": "Ukraine, Kyiv – GMT+2", "value": "Europe/Kyiv" },
+  { "label": "Turkey, Istanbul – GMT+3", "value": "Europe/Istanbul" },
+
+  { "label": "Russia, Moscow – GMT+3", "value": "Europe/Moscow" },
+  { "label": "Russia, Yekaterinburg – GMT+5", "value": "Asia/Yekaterinburg" },
+  { "label": "Russia, Novosibirsk – GMT+7", "value": "Asia/Novosibirsk" },
+  { "label": "Russia, Vladivostok – GMT+10", "value": "Asia/Vladivostok" },
+
+  { "label": "Japan, Tokyo – GMT+9", "value": "Asia/Tokyo" },
+  { "label": "South Korea, Seoul – GMT+9", "value": "Asia/Seoul" },
+  { "label": "China, Beijing – GMT+8", "value": "Asia/Shanghai" }
+]
