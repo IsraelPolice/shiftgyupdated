@@ -186,20 +186,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
           } else {
             // User document doesn't exist in Firestore
-            console.error('User document not found in Firestore');
-            // Check if this is a demo user before signing out
-            const demoUser = mockUsers[firebaseUser.email || ''];
-            if (demoUser) {
-              setUser(demoUser);
-              if (demoUser.companyId) {
-                const company = mockCompanies.find(c => c.id === demoUser.companyId);
-                if (company) {
-                  setCurrentCompany(company);
-                }
-              }
+            // Check if this is a newly created user (within last 10 seconds)
+            const userCreationTime = new Date(firebaseUser.metadata.creationTime || '').getTime();
+            const now = Date.now();
+            const isNewUser = (now - userCreationTime) < 10000; // 10 seconds
+            
+            if (isNewUser) {
+              // For new users, wait for the onboarding process to create the user document
+              console.log('New user detected, waiting for onboarding to complete...');
+              // Don't sign out, let the onboarding process handle user creation
             } else {
-              await signOut(auth);
-              setUser(null);
+              console.error('User document not found in Firestore');
+              // Check if this is a demo user before signing out
+              const demoUser = mockUsers[firebaseUser.email || ''];
+              if (demoUser) {
+                setUser(demoUser);
+                if (demoUser.companyId) {
+                  const company = mockCompanies.find(c => c.id === demoUser.companyId);
+                  if (company) {
+                    setCurrentCompany(company);
+                  }
+                }
+              } else {
+                await signOut(auth);
+                setUser(null);
+              }
             }
           }
         } catch (error) {
