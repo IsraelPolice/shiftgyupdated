@@ -159,17 +159,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             
             // If user is super admin, don't set current company
             if (userData.role !== 'super_admin' && userData.companyId) {
-              // For now, use mock company data
-              const company = mockCompanies.find(c => c.id === userData.companyId);
-              if (company) {
-                setCurrentCompany(company);
+              // Try to get company data from Firestore
+              try {
+                const companyDoc = await getDoc(doc(db, 'companies', userData.companyId));
+                if (companyDoc.exists()) {
+                  const companyData = companyDoc.data() as Company;
+                  setCurrentCompany({
+                    ...companyData,
+                    id: companyDoc.id
+                  });
+                } else {
+                  // Fallback to mock company data
+                  const company = mockCompanies.find(c => c.id === userData.companyId);
+                  if (company) {
+                    setCurrentCompany(company);
+                  }
+                }
+              } catch (error) {
+                console.warn('Error fetching company data:', error);
+                // Fallback to mock company data
+                const company = mockCompanies.find(c => c.id === userData.companyId);
+                if (company) {
+                  setCurrentCompany(company);
+                }
               }
             }
           } else {
             // User document doesn't exist in Firestore
             console.error('User document not found in Firestore');
-            await signOut(auth);
-            setUser(null);
+            // Check if this is a demo user before signing out
+            const demoUser = mockUsers[firebaseUser.email || ''];
+            if (demoUser) {
+              setUser(demoUser);
+              if (demoUser.companyId) {
+                const company = mockCompanies.find(c => c.id === demoUser.companyId);
+                if (company) {
+                  setCurrentCompany(company);
+                }
+              }
+            } else {
+              await signOut(auth);
+              setUser(null);
+            }
           }
         } catch (error) {
           console.error('Error fetching user data:', error);
