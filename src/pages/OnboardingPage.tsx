@@ -39,6 +39,7 @@ export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
   const [formData, setFormData] = useState<OnboardingFormData>({
     companyName: '',
     industry: '',
@@ -47,6 +48,7 @@ export default function OnboardingPage() {
     adminName: '',
     adminEmail: '',
     phone: '',
+    adminPassword: '',
     plan: 'basic',
     features: ['presence'],
     activationType: 'trial'
@@ -149,6 +151,14 @@ export default function OnboardingPage() {
           setError('Please enter a valid email address');
           return false;
         }
+        if (!adminPassword.trim()) {
+          setError('Administrator password is required');
+          return false;
+        }
+        if (adminPassword.length < 6) {
+          setError('Password must be at least 6 characters long');
+          return false;
+        }
         break;
     }
     
@@ -162,11 +172,8 @@ export default function OnboardingPage() {
     setError('');
     
     try {
-      // Generate a temporary password for the admin user
-      const tempPassword = 'TempPass123!';
-      
       // Create Firebase Auth user
-      const userCredential = await createUserWithEmailAndPassword(auth, formData.adminEmail, tempPassword);
+      const userCredential = await createUserWithEmailAndPassword(auth, formData.adminEmail, adminPassword);
       const firebaseUser = userCredential.user;
       
       // Create company document
@@ -201,7 +208,7 @@ export default function OnboardingPage() {
         avatar: null,
         createdAt: new Date(),
         isActive: true,
-        requirePasswordChange: true // Flag to force password change on first login
+        requirePasswordChange: false
       };
       
       await setDoc(doc(db, 'users', firebaseUser.uid), userData);
@@ -512,6 +519,21 @@ export default function OnboardingPage() {
                       />
                     </div>
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Password *
+                  </label>
+                  <input
+                    type="password"
+                    value={adminPassword}
+                    onChange={(e) => setAdminPassword(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Create a secure password"
+                    required
+                    minLength={6}
+                  />
                 </div>
 
                 <div className="bg-blue-50 rounded-lg p-4">
