@@ -26,23 +26,5 @@ export const db = getFirestore(app);
 export const storage = getStorage(app);
 
 // Connect to emulators in development
-if (import.meta.env.DEV && !auth.config.emulator) {
-  try {
-    // Only connect if not already connected
-    connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
-  } catch (error) {
-    // Emulator connection might fail if already connected or emulator not running
-    console.log('Auth emulator connection skipped:', error);
-  }
-}
-
-if (import.meta.env.DEV) {
-  try {
-    connectFirestoreEmulator(db, 'localhost', 8080);
-  } catch (error) {
-    // Emulator connection might fail if already connected or emulator not running
-    console.log('Firestore emulator connection skipped:', error);
-  }
-}
 
 export default app;

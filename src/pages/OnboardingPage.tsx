@@ -53,6 +53,7 @@ export default function OnboardingPage() {
   });
   
   const { t, language } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
   const navigate = useNavigate();
   const { formatCurrency, convertCurrency } = useCurrency();
   
