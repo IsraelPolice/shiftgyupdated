@@ -34,78 +34,6 @@ export default function Departments() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
 
-  // Sample departments data - only for demo company
-  const demoDepartments = [
-    {
-      id: 1,
-      name: 'Sales',
-      nameHe: 'מכירות',
-      description: 'Sales and customer acquisition team',
-      descriptionHe: 'צוות מכירות ורכישת לקוחות',
-      manager: 'Sarah Johnson',
-      employeeCount: 12,
-      activeShifts: 8,
-      status: 'active',
-      location: 'Floor 1, Building A',
-      locationHe: 'קומה 1, בניין א',
-      email: 'sales@shiftgy.com',
-      phone: '+1 (555) 123-4567',
-      color: 'blue',
-      lastActivity: '2 hours ago'
-    },
-    {
-      id: 2,
-      name: 'Operations',
-      nameHe: 'תפעול',
-      description: 'Operations and logistics management',
-      descriptionHe: 'ניהול תפעול ולוגיסטיקה',
-      manager: 'Michael Chen',
-      employeeCount: 18,
-      activeShifts: 15,
-      status: 'active',
-      location: 'Floor 2, Building A',
-      locationHe: 'קומה 2, בניין א',
-      email: 'operations@shiftgy.com',
-      phone: '+1 (555) 234-5678',
-      color: 'green',
-      lastActivity: '1 hour ago'
-    },
-    {
-      id: 3,
-      name: 'Customer Service',
-      nameHe: 'שירות לקוחות',
-      description: 'Customer support and service team',
-      descriptionHe: 'צוות תמיכה ושירות לקוחות',
-      manager: 'Emily Davis',
-      employeeCount: 8,
-      activeShifts: 6,
-      status: 'active',
-      location: 'Floor 3, Building B',
-      locationHe: 'קומה 3, בניין ב',
-      email: 'support@shiftgy.com',
-      phone: '+1 (555) 345-6789',
-      color: 'purple',
-      lastActivity: '30 minutes ago'
-    },
-    {
-      id: 4,
-      name: 'Security',
-      nameHe: 'אבטחה',
-      description: 'Security and safety management',
-      descriptionHe: 'ניהול אבטחה ובטיחות',
-      manager: 'Alex Thompson',
-      employeeCount: 6,
-      activeShifts: 4,
-      status: 'warning',
-      location: 'Ground Floor, All Buildings',
-      locationHe: 'קומת קרקע, כל הבניינים',
-      email: 'security@shiftgy.com',
-      phone: '+1 (555) 456-7890',
-      color: 'red',
-      lastActivity: '15 minutes ago'
-    }
-  ];
-  
   const [departments, setDepartments] = useState([]);
 
   // Load departments from Firestore
@@ -117,29 +45,41 @@ export default function Departments() {
       }
 
       try {
-        // For demo company, use mock data
-        if (currentCompany.id === 'company-1') {
-          setDepartments(demoDepartments);
-          setIsLoading(false);
-          return;
+        // Try to load from Firestore first
+        try {
+          const departmentsQuery = query(
+            collection(db, 'departments'),
+            where('companyId', '==', currentCompany.id)
+          );
+          
+          const snapshot = await getDocs(departmentsQuery);
+          const firestoreDepartments = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          
+          // Also load from localStorage as fallback
+          const localDepartments = JSON.parse(localStorage.getItem(`departments_${currentCompany.id}`) || '[]');
+          
+          // Combine and deduplicate (Firestore takes priority)
+          const allDepartments = [...firestoreDepartments];
+          localDepartments.forEach(localDept => {
+            if (!firestoreDepartments.find(fsDept => fsDept.name === localDept.name)) {
+              allDepartments.push(localDept);
+            }
+          });
+          
+          setDepartments(allDepartments);
+        } catch (firestoreError) {
+          console.warn('Firestore access denied, loading from localStorage:', firestoreError);
+          // Fallback to localStorage only
+          const localDepartments = JSON.parse(localStorage.getItem(`departments_${currentCompany.id}`) || '[]');
+          setDepartments(localDepartments);
         }
-
-        // For real companies, load from Firestore
-        const departmentsQuery = query(
-          collection(db, 'departments'),
-          where('companyId', '==', currentCompany.id)
-        );
-        
-        const snapshot = await getDocs(departmentsQuery);
-        const departmentsList = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        
-        setDepartments(departmentsList);
       } catch (error) {
         console.warn('Error loading departments from Firestore:', error);
-        // Fallback to empty array for new companies
+        // Fallback to localStorage for new companies
+        const localDepartments = JSON.parse(localStorage.getItem(`departments_${currentCompany.id}`) || '[]');
         setDepartments([]);
       } finally {
         setIsLoading(false);
@@ -394,23 +334,8 @@ export default function Departments() {
     if (!currentCompany?.id) return;
 
     try {
-      // For demo company, just update local state
-      if (currentCompany.id === 'company-1') {
-        const newDepartment = {
-          id: Date.now(),
-          ...formData,
-          employeeCount: 0,
-          activeShifts: 0,
-          status: 'active',
-          lastActivity: 'Just created'
-        };
-        setDepartments(prev => [...prev, newDepartment]);
-        setShowCreateModal(false);
-        return;
-      }
-
-      // For real companies, save to Firestore
-      const departmentToSave = {
+      const newDepartment = {
+        id: Date.now().toString(),
         ...formData,
         companyId: currentCompany.id,
         employeeCount: 0,
@@ -421,22 +346,32 @@ export default function Departments() {
         createdBy: user?.id
       };
 
-      const docRef = await addDoc(collection(db, 'departments'), departmentToSave);
+      // Try to save to Firestore
+      try {
+        const docRef = await addDoc(collection(db, 'departments'), newDepartment);
+        // Update local state with Firestore ID
+        const departmentWithFirestoreId = { ...newDepartment, id: docRef.id };
+        setDepartments(prev => [...prev, departmentWithFirestoreId]);
+        
+        // Also save to localStorage as backup
+        const existingDepartments = JSON.parse(localStorage.getItem(`departments_${currentCompany.id}`) || '[]');
+        existingDepartments.push(departmentWithFirestoreId);
+        localStorage.setItem(`departments_${currentCompany.id}`, JSON.stringify(existingDepartments));
+      } catch (firestoreError) {
+        console.warn('Firestore permission denied, using local storage fallback:', firestoreError);
+        // Fallback to local state with generated ID
+        setDepartments(prev => [...prev, newDepartment]);
+        
+        // Store in localStorage as backup
+        const existingDepartments = JSON.parse(localStorage.getItem(`departments_${currentCompany.id}`) || '[]');
+        existingDepartments.push(newDepartment);
+        localStorage.setItem(`departments_${currentCompany.id}`, JSON.stringify(existingDepartments));
+      }
       
-      // Update local state with the new department including Firestore ID
-      setDepartments(prev => [...prev, { ...departmentToSave, id: docRef.id }]);
       setShowCreateModal(false);
     } catch (error) {
       console.error('Error creating department:', error);
-      // Fallback to local state if Firestore fails
-      const newDepartment = {
-        id: Date.now(),
-        ...formData,
-        employeeCount: 0,
-        activeShifts: 0,
-        status: 'active',
-        lastActivity: 'Just created'
-      };
+      // Final fallback to local state
       setDepartments(prev => [...prev, newDepartment]);
       setShowCreateModal(false);
     }
