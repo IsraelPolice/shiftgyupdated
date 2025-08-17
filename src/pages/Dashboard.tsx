@@ -187,9 +187,9 @@ export default function Dashboard() {
         new Date(currentCompany.createdAt).toDateString() === new Date().toDateString();
       
       if (isNewCompany) {
-        // Keep empty state for new companies
+        // Show empty state for new companies
         setCompanyData({
-          activeDepartments: 4, // Default departments created during onboarding
+          activeDepartments: 0, // No departments initially
           totalEmployees: 1, // Just the admin user
           activeShifts: 0,
           attendanceRate: 0,
@@ -255,40 +255,7 @@ export default function Dashboard() {
     new Date(currentCompany.createdAt).toDateString() === new Date().toDateString();
   
   // Show different department data based on company age
-  const departments = isNewCompany ? [
-    { 
-      name: language === 'he' ? 'ניהול' : 'Management', 
-      manager: user?.name || 'Admin', 
-      staff: '1/1', 
-      status: 'good', 
-      issues: [],
-      borderColor: 'border-green-400'
-    },
-    { 
-      name: language === 'he' ? 'מכירות' : 'Sales', 
-      manager: language === 'he' ? 'לא הוקצה' : 'Not assigned', 
-      staff: '0/0', 
-      status: 'empty', 
-      issues: [language === 'he' ? 'אין עובדים' : 'No employees'],
-      borderColor: 'border-gray-400'
-    },
-    { 
-      name: language === 'he' ? 'תפעול' : 'Operations', 
-      manager: language === 'he' ? 'לא הוקצה' : 'Not assigned', 
-      staff: '0/0', 
-      status: 'empty', 
-      issues: [language === 'he' ? 'אין עובדים' : 'No employees'],
-      borderColor: 'border-gray-400'
-    },
-    { 
-      name: language === 'he' ? 'שירות לקוחות' : 'Customer Service', 
-      manager: language === 'he' ? 'לא הוקצה' : 'Not assigned', 
-      staff: '0/0', 
-      status: 'empty', 
-      issues: [language === 'he' ? 'אין עובדים' : 'No employees'],
-      borderColor: 'border-gray-400'
-    }
-  ] : [
+  const departments = isNewCompany ? [] : [
     { 
       name: language === 'he' ? 'מכירות' : 'Sales', 
       manager: 'Sarah Johnson', 
@@ -555,21 +522,21 @@ export default function Dashboard() {
                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
                   <Building2 className="w-6 h-6 text-blue-600" />
                 </div>
-                <p className="text-3xl font-bold text-gray-900">{companyData.activeDepartments}</p>
+                <p className="text-3xl font-bold text-gray-900">0</p>
                 <p className="text-sm text-gray-600">{language === 'he' ? 'מחלקות' : 'Departments'}</p>
               </div>
               <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 text-center">
                 <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4">
                   <Users className="w-6 h-6 text-green-600" />
                 </div>
-                <p className="text-3xl font-bold text-gray-900">{companyData.totalEmployees}</p>
+                <p className="text-3xl font-bold text-gray-900">1</p>
                 <p className="text-sm text-gray-600">{language === 'he' ? 'עובדים' : 'Employees'}</p>
               </div>
               <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 text-center">
                 <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
                   <Calendar className="w-6 h-6 text-purple-600" />
                 </div>
-                <p className="text-3xl font-bold text-gray-900">{companyData.activeShifts}</p>
+                <p className="text-3xl font-bold text-gray-900">0</p>
                 <p className="text-sm text-gray-600">{language === 'he' ? 'משמרות' : 'Shifts'}</p>
               </div>
               <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 text-center">
@@ -690,7 +657,7 @@ export default function Dashboard() {
                 <Building2 className="w-6 h-6 text-blue-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{companyData.activeDepartments}</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">0</p>
                 <p className="text-sm text-gray-600 dark:text-gray-300">{language === 'he' ? 'מחלקות פעילות' : 'Active Departments'}</p>
               </div>
             </div>
@@ -707,7 +674,7 @@ export default function Dashboard() {
                 <Users className="w-6 h-6 text-green-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{companyData.totalEmployees}</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">1</p>
                 <p className="text-sm text-gray-600 dark:text-gray-300">{language === 'he' ? 'סך עובדים' : 'Total Employees'}</p>
               </div>
             </div>
@@ -724,7 +691,7 @@ export default function Dashboard() {
                 <Calendar className="w-6 h-6 text-purple-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{companyData.activeShifts}</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">0</p>
                 <p className="text-sm text-gray-600 dark:text-gray-300">{language === 'he' ? 'משמרות פעילות' : 'Active Shifts'}</p>
               </div>
             </div>
@@ -741,7 +708,7 @@ export default function Dashboard() {
                 <TrendingUp className="w-6 h-6 text-orange-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{companyData.attendanceRate > 0 ? `${companyData.attendanceRate}%` : '0%'}</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">0%</p>
                 <p className="text-sm text-gray-600 dark:text-gray-300">{language === 'he' ? 'שיעור נוכחות' : 'Attendance Rate'}</p>
               </div>
             </div>
@@ -758,7 +725,7 @@ export default function Dashboard() {
                 <AlertTriangle className="w-6 h-6 text-red-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{companyData.pendingApprovals}</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">0</p>
                 <p className="text-sm text-gray-600 dark:text-gray-300">{language === 'he' ? 'אישורים ממתינים' : 'Pending Approvals'}</p>
               </div>
             </div>
@@ -780,15 +747,15 @@ export default function Dashboard() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600 dark:text-gray-300">{language === 'he' ? 'מחלקות פעילות' : 'Active Departments'}</span>
-                  <span className="font-semibold text-gray-900 dark:text-white">{companyData.activeDepartments}</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">0</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600 dark:text-gray-300">{language === 'he' ? 'צוות במשמרת' : 'On-Duty Staff'}</span>
-                  <span className="font-semibold text-gray-900 dark:text-white">{companyData.onDutyStaff}</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">0</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600 dark:text-gray-300">{language === 'he' ? 'שיעור כיסוי' : 'Coverage Rate'}</span>
-                  <span className="font-semibold text-green-600">{companyData.coverageRate > 0 ? `${companyData.coverageRate}%` : '0%'}</span>
+                  <span className="font-semibold text-green-600">0%</span>
                 </div>
               </div>
             </div>
@@ -854,45 +821,69 @@ export default function Dashboard() {
               <h3 className={`text-lg font-semibold text-gray-900 dark:text-white mb-6 ${isRTL ? 'text-right' : 'text-left'}`}>
                 {language === 'he' ? 'סטטוס מחלקות' : 'Departments Status'}
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {departments.map((dept, index) => (
-                  <div key={index} className={`p-4 rounded-lg border ${getStatusBg(dept.status)} ${
-                    isRTL ? 'border-r-4' : 'border-l-4'
-                  } ${dept.borderColor}`}>
-                    <div className={`flex items-center justify-between mb-2 ${isRTL ? 'flex-row-reverse' : 'flex-row'}`}>
-                      <div className={`flex items-center gap-3 ${isRTL ? 'flex-row-reverse' : 'flex-row'}`}>
-                        <div className={`w-3 h-3 rounded-full ${getStatusColor(dept.status)}`} />
-                        <div className={isRTL ? 'text-right' : 'text-left'}>
-                          <h4 className="font-medium text-gray-900 dark:text-white">{dept.name}</h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-300">
-                            {language === 'he' ? `מנהל: ${dept.manager}` : `Manager: ${dept.manager}`}
+              {departments.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Building2 className="w-6 h-6 text-gray-400" />
+                  </div>
+                  <h4 className="font-medium text-gray-900 mb-2">
+                    {language === 'he' ? 'אין מחלקות עדיין' : 'No departments yet'}
+                  </h4>
+                  <p className="text-gray-500 mb-4">
+                    {language === 'he' 
+                      ? 'התחל על ידי יצירת המחלקות הראשונות שלך'
+                      : 'Start by creating your first departments'
+                    }
+                  </p>
+                  <button
+                    onClick={() => navigate('/departments')}
+                    className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                  >
+                    <Building2 className="w-5 h-5 mr-2" />
+                    {language === 'he' ? 'צור מחלקות' : 'Create Departments'}
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {departments.map((dept, index) => (
+                    <div key={index} className={`p-4 rounded-lg border ${getStatusBg(dept.status)} ${
+                      isRTL ? 'border-r-4' : 'border-l-4'
+                    } ${dept.borderColor}`}>
+                      <div className={`flex items-center justify-between mb-2 ${isRTL ? 'flex-row-reverse' : 'flex-row'}`}>
+                        <div className={`flex items-center gap-3 ${isRTL ? 'flex-row-reverse' : 'flex-row'}`}>
+                          <div className={`w-3 h-3 rounded-full ${getStatusColor(dept.status)}`} />
+                          <div className={isRTL ? 'text-right' : 'text-left'}>
+                            <h4 className="font-medium text-gray-900 dark:text-white">{dept.name}</h4>
+                            <p className="text-sm text-gray-600 dark:text-gray-300">
+                              {language === 'he' ? `מנהל: ${dept.manager}` : `Manager: ${dept.manager}`}
+                            </p>
+                          </div>
+                        </div>
+                        <div className={isRTL ? 'text-left' : 'text-right'}>
+                          <p className="font-semibold text-gray-900 dark:text-white">{dept.staff}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {language === 'he' ? 'צוות' : 'Staff'}
                           </p>
                         </div>
                       </div>
-                      <div className={isRTL ? 'text-left' : 'text-right'}>
-                        <p className="font-semibold text-gray-900 dark:text-white">{dept.staff}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          {language === 'he' ? 'צוות' : 'Staff'}
-                        </p>
-                      </div>
+                      {dept.issues.length > 0 && (
+                        <div className={isRTL ? 'text-right' : 'text-left'}>
+                          {dept.issues.map((issue, idx) => (
+                            <div key={idx} className={`text-xs text-gray-600 dark:text-gray-300 flex items-center gap-1 ${isRTL ? 'flex-row-reverse' : 'flex-row'}`}>
+                              {dept.status === 'empty' ? (
+                                <Users className="w-3 h-3" />
+                              ) : (
+                                <AlertTriangle className="w-3 h-3" />
+                              )}
+                              {issue}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                    {dept.issues.length > 0 && (
-                      <div className={isRTL ? 'text-right' : 'text-left'}>
-                        {dept.issues.map((issue, idx) => (
-                          <div key={idx} className={`text-xs text-gray-600 dark:text-gray-300 flex items-center gap-1 ${isRTL ? 'flex-row-reverse' : 'flex-row'}`}>
-                            {dept.status === 'empty' ? (
-                              <Users className="w-3 h-3" />
-                            ) : (
-                              <AlertTriangle className="w-3 h-3" />
-                            )}
-                            {issue}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
