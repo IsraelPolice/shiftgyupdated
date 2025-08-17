@@ -242,31 +242,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
-      // Check if this is a demo user first
-      const mockUser = mockUsers[email];
-      if (mockUser && password === 'password') {
-        // For demo users, set the user directly without Firebase
-        setUser(mockUser);
-        
-        // Set current company for non-super admin users
-        if (mockUser.role !== 'super_admin' && mockUser.companyId) {
-          const company = mockCompanies.find(c => c.id === mockUser.companyId);
-          if (company) {
-            setCurrentCompany(company);
-          }
-        }
-        
-        setLoading(false);
-        return;
-      }
-      
-      // If not a demo user, try Firebase authentication
+      // Try Firebase authentication first
       try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         // User data will be set by the auth state listener
         return userCredential.user;
       } catch (firebaseError) {
-        // If Firebase auth fails, throw the original error
+        // If Firebase auth fails, check if this is a demo user
+        const mockUser = mockUsers[email];
+        if (mockUser && password === 'password') {
+          // For demo users, set the user directly without Firebase
+          setUser(mockUser);
+          
+          // Set current company for non-super admin users
+          if (mockUser.role !== 'super_admin' && mockUser.companyId) {
+            const company = mockCompanies.find(c => c.id === mockUser.companyId);
+            if (company) {
+              setCurrentCompany(company);
+            }
+          }
+          
+          setLoading(false);
+          return;
+        }
+        
+        // If not a demo user either, throw the Firebase error
         throw firebaseError;
       }
     } catch (error) {
