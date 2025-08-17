@@ -26,15 +26,19 @@ import {
 
 export default function Departments() {
   const { language, isRTL } = useLanguage();
-  const { currentCompany, user } = useAuth();
+  const { currentCompany, user, hasPermission } = useAuth();
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
+  const [editingDepartment, setEditingDepartment] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   const [departments, setDepartments] = useState([]);
+
+  const canManageDepartments = hasPermission('manage_employees') || hasPermission('view_all');
 
   // Load departments from Firestore
   useEffect(() => {
@@ -77,9 +81,8 @@ export default function Departments() {
           setDepartments(localDepartments);
         }
       } catch (error) {
-        console.warn('Error loading departments from Firestore:', error);
-        // Fallback to localStorage for new companies
-        const localDepartments = JSON.parse(localStorage.getItem(`departments_${currentCompany.id}`) || '[]');
+        console.warn('Error loading departments:', error);
+        // Fallback to empty array for new companies
         setDepartments([]);
       } finally {
         setIsLoading(false);
@@ -91,7 +94,7 @@ export default function Departments() {
 
   const filteredDepartments = departments.filter(dept => {
     const matchesSearch = dept.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         dept.nameHe.includes(searchTerm) ||
+                         (dept.nameHe && dept.nameHe.includes(searchTerm)) ||
                          dept.manager.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterStatus === 'all' || dept.status === filterStatus;
     return matchesSearch && matchesFilter;
@@ -129,6 +132,45 @@ export default function Departments() {
     navigate(`/schedules?startDate=${weekRange.start}&endDate=${weekRange.end}&view=week`);
   };
 
+  const handleViewDepartment = (department) => {
+    // Navigate to employees page filtered by this department
+    navigate(`/employees?department=${encodeURIComponent(department.name)}`);
+  };
+
+  const handleEditDepartment = (department) => {
+    setEditingDepartment(department);
+    setShowEditModal(true);
+  };
+
+  const handleAddEmployeesToDepartment = (department) => {
+    // Navigate to employees page with add employee modal and pre-selected department
+    navigate(`/employees?action=add&department=${encodeURIComponent(department.name)}`);
+  };
+
+  const handleDeleteDepartment = async (departmentId) => {
+    if (!confirm(language === 'he' ? 'האם אתה בטוח שברצונך למחוק מחלקה זו?' : 'Are you sure you want to delete this department?')) {
+      return;
+    }
+
+    try {
+      // Remove from Firestore if possible
+      try {
+        await updateDoc(doc(db, 'departments', departmentId), { isActive: false });
+      } catch (firestoreError) {
+        console.warn('Could not update Firestore, updating locally:', firestoreError);
+      }
+
+      // Update local state
+      setDepartments(prev => prev.filter(dept => dept.id !== departmentId));
+      
+      // Update localStorage
+      const updatedDepartments = departments.filter(dept => dept.id !== departmentId);
+      localStorage.setItem(`departments_${currentCompany.id}`, JSON.stringify(updatedDepartments));
+    } catch (error) {
+      console.error('Error deleting department:', error);
+    }
+  };
+
   const CreateDepartmentModal = () => {
     const [formData, setFormData] = useState({
       name: '',
@@ -152,6 +194,50 @@ export default function Departments() {
       { value: 'indigo', label: 'Indigo', class: 'bg-indigo-500' }
     ];
 
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      if (!formData.name.trim()) return;
+
+      const newDepartment = {
+        id: Date.now().toString(),
+        ...formData,
+        companyId: currentCompany.id,
+        employeeCount: 0,
+        activeShifts: 0,
+        status: 'active',
+        lastActivity: 'Just created',
+        createdAt: new Date(),
+        createdBy: user?.id
+      };
+
+      try {
+        // Try to save to Firestore
+        try {
+          const docRef = await addDoc(collection(db, 'departments'), newDepartment);
+          const departmentWithFirestoreId = { ...newDepartment, id: docRef.id };
+          setDepartments(prev => [...prev, departmentWithFirestoreId]);
+          
+          // Also save to localStorage as backup
+          const existingDepartments = JSON.parse(localStorage.getItem(`departments_${currentCompany.id}`) || '[]');
+          existingDepartments.push(departmentWithFirestoreId);
+          localStorage.setItem(`departments_${currentCompany.id}`, JSON.stringify(existingDepartments));
+        } catch (firestoreError) {
+          console.warn('Firestore permission denied, using local storage fallback:', firestoreError);
+          setDepartments(prev => [...prev, newDepartment]);
+          
+          const existingDepartments = JSON.parse(localStorage.getItem(`departments_${currentCompany.id}`) || '[]');
+          existingDepartments.push(newDepartment);
+          localStorage.setItem(`departments_${currentCompany.id}`, JSON.stringify(existingDepartments));
+        }
+        
+        setShowCreateModal(false);
+      } catch (error) {
+        console.error('Error creating department:', error);
+        setDepartments(prev => [...prev, newDepartment]);
+        setShowCreateModal(false);
+      }
+    };
+
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -169,13 +255,13 @@ export default function Departments() {
             </div>
           </div>
           
-          <div className="p-6">
+          <form onSubmit={handleSubmit} className="p-6">
             <div className="space-y-6">
               {/* Department Names */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {language === 'he' ? 'שם מחלקה (אנגלית)' : 'Department Name (English)'}
+                    {language === 'he' ? 'שם מחלקה (אנגלית)' : 'Department Name (English)'} *
                   </label>
                   <input
                     type="text"
@@ -183,6 +269,7 @@ export default function Departments() {
                     placeholder="e.g., Sales"
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    required
                   />
                 </div>
                 <div>
@@ -195,35 +282,6 @@ export default function Departments() {
                     placeholder="למשל: מכירות"
                     value={formData.nameHe}
                     onChange={(e) => setFormData({...formData, nameHe: e.target.value})}
-                    dir="rtl"
-                  />
-                </div>
-              </div>
-
-              {/* Descriptions */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {language === 'he' ? 'תיאור (אנגלית)' : 'Description (English)'}
-                  </label>
-                  <textarea
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    rows={3}
-                    placeholder="Brief description of the department"
-                    value={formData.description}
-                    onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {language === 'he' ? 'תיאור (עברית)' : 'Description (Hebrew)'}
-                  </label>
-                  <textarea
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    rows={3}
-                    placeholder="תיאור קצר של המחלקה"
-                    value={formData.descriptionHe}
-                    onChange={(e) => setFormData({...formData, descriptionHe: e.target.value})}
                     dir="rtl"
                   />
                 </div>
@@ -246,22 +304,6 @@ export default function Departments() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {language === 'he' ? 'אימייל' : 'Email'}
-                  </label>
-                  <input
-                    type="email"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="department@company.com"
-                    value={formData.email}
-                    onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  />
-                </div>
-              </div>
-
-              {/* Location and Phone */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     {language === 'he' ? 'מיקום' : 'Location'}
                   </label>
                   <input
@@ -271,18 +313,6 @@ export default function Departments() {
                     value={formData.location}
                     onChange={(e) => setFormData({...formData, location: e.target.value})}
                     dir={isRTL ? 'rtl' : 'ltr'}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {language === 'he' ? 'טלפון' : 'Phone'}
-                  </label>
-                  <input
-                    type="tel"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="+1 (555) 123-4567"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
                   />
                 </div>
               </div>
@@ -307,30 +337,29 @@ export default function Departments() {
                 </div>
               </div>
             </div>
-          </div>
 
-          <div className="p-6 border-t border-gray-200 flex gap-3 justify-end">
-            <button
-              onClick={() => setShowCreateModal(false)}
-              className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-            >
-              {language === 'he' ? 'ביטול' : 'Cancel'}
-            </button>
-            <button
-              onClick={() => {
-                handleCreateDepartment(formData);
-              }}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-            >
-              {language === 'he' ? 'יצור מחלקה' : 'Create Department'}
-            </button>
-          </div>
+            <div className="flex gap-3 justify-end mt-6 pt-6 border-t border-gray-200">
+              <button
+                type="button"
+                onClick={() => setShowCreateModal(false)}
+                className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                {language === 'he' ? 'ביטול' : 'Cancel'}
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              >
+                {language === 'he' ? 'יצור מחלקה' : 'Create Department'}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     );
   };
 
-  const handleCreateDepartment = async (formData: any) => {
+  const handleCreateDepartment = async (formData) => {
     if (!currentCompany?.id) return;
 
     try {
@@ -372,6 +401,17 @@ export default function Departments() {
     } catch (error) {
       console.error('Error creating department:', error);
       // Final fallback to local state
+      const newDepartment = {
+        id: Date.now().toString(),
+        ...formData,
+        companyId: currentCompany.id,
+        employeeCount: 0,
+        activeShifts: 0,
+        status: 'active',
+        lastActivity: 'Just created',
+        createdAt: new Date(),
+        createdBy: user?.id
+      };
       setDepartments(prev => [...prev, newDepartment]);
       setShowCreateModal(false);
     }
@@ -391,13 +431,15 @@ export default function Departments() {
                 {language === 'he' ? 'נהל מחלקות הארגון ומידע הצוות' : 'Manage organization departments and team information'}
               </p>
             </div>
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              {language === 'he' ? 'הוסף מחלקה' : 'Add Department'}
-            </button>
+            {canManageDepartments && (
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                {language === 'he' ? 'הוסף מחלקה' : 'Add Department'}
+              </button>
+            )}
           </div>
 
           {/* Stats */}
@@ -424,7 +466,7 @@ export default function Departments() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-gray-900">
-                    {departments.reduce((sum, dept) => sum + dept.employeeCount, 0)}
+                    {departments.reduce((sum, dept) => sum + (dept.employeeCount || 0), 0)}
                   </p>
                   <p className="text-sm text-gray-600">{language === 'he' ? 'סך עובדים' : 'Total Employees'}</p>
                 </div>
@@ -441,7 +483,7 @@ export default function Departments() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-gray-900">
-                    {departments.reduce((sum, dept) => sum + dept.activeShifts, 0)}
+                    {departments.reduce((sum, dept) => sum + (dept.activeShifts || 0), 0)}
                   </p>
                   <p className="text-sm text-gray-600">{language === 'he' ? 'משמרות פעילות' : 'Active Shifts'}</p>
                 </div>
@@ -492,100 +534,133 @@ export default function Departments() {
           <div className="flex justify-center items-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
           </div>
-        ) : (
+        ) : filteredDepartments.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredDepartments.map(department => (
-            <div key={department.id} className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-              {/* Department Header */}
-              <div className="p-6 border-b border-gray-100">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 bg-${department.color}-100 rounded-lg flex items-center justify-center`}>
-                      <Building2 className={`w-5 h-5 text-${department.color}-600`} />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900">
-                        {language === 'he' ? department.nameHe : department.name}
-                      </h3>
-                      <div className="flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${
-                          department.status === 'active' ? 'bg-green-500' : 'bg-orange-500'
-                        }`} />
-                        <span className="text-xs text-gray-500">
-                          {department.status === 'active' 
-                            ? (language === 'he' ? 'פעיל' : 'Active')
-                            : (language === 'he' ? 'אזהרה' : 'Warning')
-                          }
-                        </span>
+            {filteredDepartments.map(department => (
+              <div key={department.id} className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                {/* Department Header */}
+                <div className="p-6 border-b border-gray-100">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 bg-${department.color || 'blue'}-100 rounded-lg flex items-center justify-center`}>
+                        <Building2 className={`w-5 h-5 text-${department.color || 'blue'}-600`} />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-900">
+                          {language === 'he' ? (department.nameHe || department.name) : department.name}
+                        </h3>
+                        <div className="flex items-center gap-2">
+                          <div className={`w-2 h-2 rounded-full ${
+                            department.status === 'active' ? 'bg-green-500' : 'bg-orange-500'
+                          }`} />
+                          <span className="text-xs text-gray-500">
+                            {department.status === 'active' 
+                              ? (language === 'he' ? 'פעיל' : 'Active')
+                              : (language === 'he' ? 'אזהרה' : 'Warning')
+                            }
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                  <button className="text-gray-400 hover:text-gray-600">
-                    <MoreVertical className="w-4 h-4" />
-                  </button>
+                  <p className="text-sm text-gray-600">
+                    {language === 'he' ? (department.descriptionHe || department.description || 'אין תיאור') : (department.description || 'No description')}
+                  </p>
                 </div>
-                <p className="text-sm text-gray-600">
-                  {language === 'he' ? department.descriptionHe : department.description}
-                </p>
+
+                {/* Department Stats */}
+                <div className="p-6">
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-gray-900">{department.employeeCount || 0}</p>
+                      <p className="text-xs text-gray-500">{language === 'he' ? 'עובדים' : 'Employees'}</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-gray-900">{department.activeShifts || 0}</p>
+                      <p className="text-xs text-gray-500">{language === 'he' ? 'משמרות פעילות' : 'Active Shifts'}</p>
+                    </div>
+                  </div>
+
+                  {/* Department Info */}
+                  <div className="space-y-2 mb-4">
+                    {department.manager && (
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Users className="w-4 h-4" />
+                        <span>{language === 'he' ? 'מנהל:' : 'Manager:'} {department.manager}</span>
+                      </div>
+                    )}
+                    {department.location && (
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <MapPin className="w-4 h-4" />
+                        <span>{language === 'he' ? (department.locationHe || department.location) : department.location}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <Clock className="w-4 h-4" />
+                      <span>{language === 'he' ? 'פעילות אחרונה:' : 'Last activity:'} {department.lastActivity || 'Never'}</span>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => handleViewDepartment(department)}
+                      className="flex-1 px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors flex items-center justify-center gap-1"
+                      title={language === 'he' ? 'צפה בעובדי המחלקה' : 'View department employees'}
+                    >
+                      <Eye className="w-4 h-4" />
+                      <span className="hidden sm:inline">{language === 'he' ? 'צפה' : 'View'}</span>
+                    </button>
+                    {canManageDepartments && (
+                      <>
+                        <button 
+                          onClick={() => handleEditDepartment(department)}
+                          className="flex-1 px-3 py-2 text-sm bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg transition-colors flex items-center justify-center gap-1"
+                          title={language === 'he' ? 'ערוך מחלקה' : 'Edit department'}
+                        >
+                          <Edit className="w-4 h-4" />
+                          <span className="hidden sm:inline">{language === 'he' ? 'ערוך' : 'Edit'}</span>
+                        </button>
+                        <button 
+                          onClick={() => handleAddEmployeesToDepartment(department)}
+                          className="flex-1 px-3 py-2 text-sm bg-green-100 hover:bg-green-200 text-green-700 rounded-lg transition-colors flex items-center justify-center gap-1"
+                          title={language === 'he' ? 'הוסף עובדים למחלקה' : 'Add employees to department'}
+                        >
+                          <Plus className="w-4 h-4" />
+                          <span className="hidden sm:inline">{language === 'he' ? 'הוסף' : 'Add'}</span>
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
               </div>
-
-              {/* Department Stats */}
-              <div className="p-6">
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-gray-900">{department.employeeCount}</p>
-                    <p className="text-xs text-gray-500">{language === 'he' ? 'עובדים' : 'Employees'}</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-gray-900">{department.activeShifts}</p>
-                    <p className="text-xs text-gray-500">{language === 'he' ? 'משמרות פעילות' : 'Active Shifts'}</p>
-                  </div>
-                </div>
-
-                {/* Department Info */}
-                <div className="space-y-2 mb-4">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Users className="w-4 h-4" />
-                    <span>{language === 'he' ? 'מנהל:' : 'Manager:'} {department.manager}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <MapPin className="w-4 h-4" />
-                    <span>{language === 'he' ? department.locationHe : department.location}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Clock className="w-4 h-4" />
-                    <span>{language === 'he' ? 'פעילות אחרונה:' : 'Last activity:'} {department.lastActivity}</span>
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex gap-2">
-                  <button className="flex-1 px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors">
-                    <Eye className="w-4 h-4 mx-auto" />
-                  </button>
-                  <button className="flex-1 px-3 py-2 text-sm bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg transition-colors">
-                    <Edit className="w-4 h-4 mx-auto" />
-                  </button>
-                  <button className="flex-1 px-3 py-2 text-sm bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-colors">
-                    <Trash2 className="w-4 h-4 mx-auto" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
+            ))}
           </div>
-        )}
-
-        {/* Empty State */}
-        {filteredDepartments.length === 0 && (
+        ) : (
+          /* Empty State */
           <div className="text-center py-12">
             <Building2 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {language === 'he' ? 'לא נמצאו מחלקות' : 'No departments found'}
+              {searchTerm || filterStatus !== 'all' 
+                ? (language === 'he' ? 'לא נמצאו מחלקות' : 'No departments found')
+                : (language === 'he' ? 'אין מחלקות עדיין' : 'No departments yet')
+              }
             </h3>
             <p className="text-gray-600 mb-4">
-              {language === 'he' ? 'נסה לשנות את מונחי החיפוש או הסינון' : 'Try adjusting your search or filter criteria'}
+              {searchTerm || filterStatus !== 'all'
+                ? (language === 'he' ? 'נסה לשנות את מונחי החיפוש או הסינון' : 'Try adjusting your search or filter criteria')
+                : (language === 'he' ? 'התחל על ידי יצירת המחלקה הראשונה שלך' : 'Start by creating your first department')
+              }
             </p>
+            {canManageDepartments && !searchTerm && filterStatus === 'all' && (
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                {language === 'he' ? 'צור מחלקה ראשונה' : 'Create First Department'}
+              </button>
+            )}
           </div>
         )}
       </div>
