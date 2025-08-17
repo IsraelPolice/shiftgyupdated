@@ -35,6 +35,7 @@ export default function Departments() {
   const [isLoading, setIsLoading] = useState(true);
   const [editingDepartment, setEditingDepartment] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedDepartment, setSelectedDepartment] = useState(null);
 
   const [departments, setDepartments] = useState([]);
 
