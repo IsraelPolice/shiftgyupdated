@@ -42,6 +42,7 @@ interface JobTemplate {
   isDefault: boolean;
   createdAt: string;
   assignedEmployees: number;
+  companyId?: string;
   
   // Seasonal adjustments
   seasonalRules?: {
@@ -50,8 +51,8 @@ interface JobTemplate {
   };
 }
 
-// Mock templates data
-const mockTemplates: JobTemplate[] = [
+// Mock templates data - only for demo company
+const demoTemplates: JobTemplate[] = [
   {
     id: '1',
     name: 'Student Flexible',
@@ -74,7 +75,8 @@ const mockTemplates: JobTemplate[] = [
     isActive: true,
     isDefault: false,
     createdAt: '2024-01-01',
-    assignedEmployees: 5
+    assignedEmployees: 5,
+    companyId: 'company-1'
   },
   {
     id: '2', 
@@ -98,7 +100,8 @@ const mockTemplates: JobTemplate[] = [
     isActive: true,
     isDefault: false,
     createdAt: '2024-01-05',
-    assignedEmployees: 3
+    assignedEmployees: 3,
+    companyId: 'company-1'
   },
   {
     id: '3',
@@ -122,14 +125,15 @@ const mockTemplates: JobTemplate[] = [
     isActive: true,
     isDefault: false,
     createdAt: '2024-01-10',
-    assignedEmployees: 8
+    assignedEmployees: 8,
+    companyId: 'company-1'
   }
 ];
 
 export default function Templates() {
   const navigate = useNavigate();
   const { language, isRTL } = useLanguage();
-  const { hasPermission } = useAuth();
+  const { hasPermission, currentCompany } = useAuth();
   
   const [templates, setTemplates] = useState<JobTemplate[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -138,10 +142,19 @@ export default function Templates() {
 
   // Load templates on component mount
   useEffect(() => {
-    const savedTemplates = JSON.parse(localStorage.getItem('jobTemplates') || '[]');
-    const allTemplates = [...mockTemplates, ...savedTemplates];
-    setTemplates(allTemplates);
-  }, []);
+    if (!currentCompany?.id) return;
+
+    // For demo company, use mock data
+    if (currentCompany.id === 'company-1') {
+      const savedTemplates = JSON.parse(localStorage.getItem('jobTemplates') || '[]');
+      const allTemplates = [...demoTemplates, ...savedTemplates];
+      setTemplates(allTemplates);
+    } else {
+      // For real companies, load from localStorage with company-specific key
+      const savedTemplates = JSON.parse(localStorage.getItem(`jobTemplates_${currentCompany.id}`) || '[]');
+      setTemplates(savedTemplates);
+    }
+  }, [currentCompany?.id]);
 
   const canManageTemplates = hasPermission('manage_schedules');
 
@@ -164,6 +177,8 @@ export default function Templates() {
   };
 
   const handleDuplicateTemplate = (template: JobTemplate) => {
+    if (!currentCompany?.id) return;
+
     const duplicated = {
       ...template,
       id: Date.now().toString(),
@@ -171,26 +186,33 @@ export default function Templates() {
       isActive: false,
       isDefault: false,
       assignedEmployees: 0,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      companyId: currentCompany.id
     };
     
     setTemplates(prev => {
       const updated = [...prev, duplicated];
-      // Save to localStorage (only non-mock templates)
-      const savedTemplates = updated.filter(t => !mockTemplates.find(mock => mock.id === t.id));
-      localStorage.setItem('jobTemplates', JSON.stringify(savedTemplates));
+      // Save to localStorage with company-specific key
+      const savedTemplates = currentCompany.id === 'company-1' 
+        ? updated.filter(t => !demoTemplates.find(demo => demo.id === t.id))
+        : updated;
+      localStorage.setItem(`jobTemplates_${currentCompany.id}`, JSON.stringify(savedTemplates));
       return updated;
     });
   };
 
   const handleDeleteTemplate = (templateId: string) => {
+    if (!currentCompany?.id) return;
+
     if (window.confirm('Are you sure you want to delete this template?')) {
       const updatedTemplates = templates.filter(t => t.id !== templateId);
       setTemplates(updatedTemplates);
       
-      // Update localStorage (only save non-mock templates)
-      const savedTemplates = updatedTemplates.filter(t => !mockTemplates.find(mock => mock.id === t.id));
-      localStorage.setItem('jobTemplates', JSON.stringify(savedTemplates));
+      // Update localStorage with company-specific key
+      const savedTemplates = currentCompany.id === 'company-1' 
+        ? updatedTemplates.filter(t => !demoTemplates.find(demo => demo.id === t.id))
+        : updatedTemplates;
+      localStorage.setItem(`jobTemplates_${currentCompany.id}`, JSON.stringify(savedTemplates));
     }
   };
 
@@ -279,7 +301,7 @@ export default function Templates() {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Avg Hours/Week</p>
               <p className="text-2xl font-bold text-gray-900">
-                {Math.round(templates.reduce((sum, t) => sum + t.weeklyHoursLimit, 0) / templates.length)}
+                {templates.length > 0 ? Math.round(templates.reduce((sum, t) => sum + t.weeklyHoursLimit, 0) / templates.length) : 0}
               </p>
             </div>
           </div>
@@ -293,7 +315,7 @@ export default function Templates() {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Categories</p>
               <p className="text-2xl font-bold text-gray-900">
-                {new Set(templates.map(t => t.category)).size}
+                {templates.length > 0 ? new Set(templates.map(t => t.category)).size : 0}
               </p>
             </div>
           </div>

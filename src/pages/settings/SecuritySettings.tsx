@@ -15,9 +15,17 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
+import { auth } from '../../firebase/config';
 
 export default function SecuritySettings() {
   const [showPassword, setShowPassword] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState('');
   const [ssoEnabled, setSsoEnabled] = useState(false);
   const [ssoProvider, setSsoProvider] = useState('');
   const [ssoConfig, setSSoConfig] = useState({
@@ -43,6 +51,66 @@ export default function SecuritySettings() {
     { id: '2', name: 'Michael Chen', email: 'michael.chen@company.com', role: 'admin' },
     { id: '3', name: 'Emily Davis', email: 'emily.davis@company.com', role: 'sub_admin' }
   ];
+  
+  const handlePasswordChange = async () => {
+    setPasswordError('');
+    setPasswordSuccess('');
+    
+    // Validation
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      setPasswordError('All password fields are required');
+      return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+      setPasswordError('New passwords do not match');
+      return;
+    }
+    
+    if (newPassword.length < 6) {
+      setPasswordError('New password must be at least 6 characters long');
+      return;
+    }
+    
+    setIsChangingPassword(true);
+    
+    try {
+      const currentUser = auth.currentUser;
+      if (!currentUser || !currentUser.email) {
+        throw new Error('No authenticated user found');
+      }
+      
+      // Re-authenticate user with current password
+      const credential = EmailAuthProvider.credential(currentUser.email, currentPassword);
+      await reauthenticateWithCredential(currentUser, credential);
+      
+      // Update password
+      await updatePassword(currentUser, newPassword);
+      
+      setPasswordSuccess('Password updated successfully!');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      
+      // Hide success message after 3 seconds
+      setTimeout(() => setPasswordSuccess(''), 3000);
+      
+    } catch (error: any) {
+      console.error('Password change error:', error);
+      
+      if (error.code === 'auth/wrong-password') {
+        setPasswordError('Current password is incorrect');
+      } else if (error.code === 'auth/weak-password') {
+        setPasswordError('New password is too weak');
+      } else if (error.code === 'auth/requires-recent-login') {
+        setPasswordError('Please log out and log back in before changing your password');
+      } else {
+        setPasswordError('Failed to update password. Please try again.');
+      }
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
   
   const handleSSOToggle = () => {
     if (!ssoEnabled) {
@@ -158,6 +226,21 @@ export default function SecuritySettings() {
           </div>
         </div>
         
+        {/* Success/Error Messages */}
+        {passwordSuccess && (
+          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2 text-green-700">
+            <CheckCircle className="w-5 h-5 flex-shrink-0" />
+            <span>{passwordSuccess}</span>
+          </div>
+        )}
+        
+        {passwordError && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700">
+            <AlertCircle className="w-5 h-5 flex-shrink-0" />
+            <span>{passwordError}</span>
+          </div>
+        )}
+        
         <div className="space-y-4 max-w-md">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -166,6 +249,8 @@ export default function SecuritySettings() {
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10"
                 placeholder="Enter your current password"
               />
@@ -186,25 +271,27 @@ export default function SecuritySettings() {
             <input
               placeholder="Create a strong, unique password"
               type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
             <div className="mt-2">
               <p className="text-xs text-gray-500 mb-1">Password requirements:</p>
               <ul className="space-y-1 text-xs">
                 <li className="flex items-center gap-1">
-                  <CheckCircle className="w-3 h-3 text-green-500" />
+                  <CheckCircle className={`w-3 h-3 ${newPassword.length >= 6 ? 'text-green-500' : 'text-gray-300'}`} />
                   <span>At least 8 characters</span>
                 </li>
                 <li className="flex items-center gap-1">
-                  <CheckCircle className="w-3 h-3 text-green-500" />
+                  <CheckCircle className={`w-3 h-3 ${/[A-Z]/.test(newPassword) ? 'text-green-500' : 'text-gray-300'}`} />
                   <span>At least one uppercase letter</span>
                 </li>
                 <li className="flex items-center gap-1">
-                  <XCircle className="w-3 h-3 text-red-500" />
+                  <CheckCircle className={`w-3 h-3 ${/[0-9]/.test(newPassword) ? 'text-green-500' : 'text-gray-300'}`} />
                   <span>At least one number</span>
                 </li>
                 <li className="flex items-center gap-1">
-                  <XCircle className="w-3 h-3 text-red-500" />
+                  <CheckCircle className={`w-3 h-3 ${/[!@#$%^&*(),.?":{}|<>]/.test(newPassword) ? 'text-green-500' : 'text-gray-300'}`} />
                   <span>At least one special character</span>
                 </li>
               </ul>
@@ -218,14 +305,23 @@ export default function SecuritySettings() {
             <input
               placeholder="Re-enter your new password"
               type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
           
           <div className="pt-2">
-            <button className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+            <button 
+              onClick={handlePasswordChange}
+              disabled={isChangingPassword || !currentPassword || !newPassword || !confirmPassword}
+              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isChangingPassword && (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+              )}
               <Save className="w-4 h-4 mr-2" />
-              Update Password
+              {isChangingPassword ? 'Updating...' : 'Update Password'}
             </button>
           </div>
         </div>

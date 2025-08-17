@@ -688,6 +688,7 @@ function AppearanceSettings() {
 function CompanySettings() {
   const { language, isRTL } = useLanguage();
   const { workWeekType, updateWorkWeekType } = useCompanySettings();
+  const { currentCompany } = useAuth();
   const [showSuccessToast, setShowSuccessToast] = useState(false);
   
   const handleWorkWeekChange = (newType) => {
@@ -866,7 +867,7 @@ function CompanySettings() {
             </label>
             <input
               type="text"
-              defaultValue="ShiftGY Demo Company"
+              defaultValue={currentCompany?.name || 'Your Company'}
               className={`w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${isRTL ? 'text-right' : 'text-left'}`}
               dir={isRTL ? 'rtl' : 'ltr'}
             />
@@ -877,7 +878,12 @@ function CompanySettings() {
               {language === 'he' ? 'תחום' : 'Industry'}
             </label>
             <select className={`w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${isRTL ? 'text-right' : 'text-left'}`} dir={isRTL ? 'rtl' : 'ltr'}>
-              <option>{language === 'he' ? 'קמעונאות' : 'Retail'}</option>
+              <option value={currentCompany?.industry || 'retail'}>
+                {currentCompany?.industry ? 
+                  (currentCompany.industry.charAt(0).toUpperCase() + currentCompany.industry.slice(1)) : 
+                  (language === 'he' ? 'קמעונאות' : 'Retail')
+                }
+              </option>
               <option>{language === 'he' ? 'אירוח' : 'Hospitality'}</option>
               <option>{language === 'he' ? 'בריאות' : 'Healthcare'}</option>
               <option>{language === 'he' ? 'ייצור' : 'Manufacturing'}</option>
