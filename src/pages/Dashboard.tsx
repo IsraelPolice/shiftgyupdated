@@ -199,8 +199,8 @@ export default function Dashboard() {
           onDutyStaff: 0,
           coverageRate: 0
         });
-      } else {
-        // Load demo data for existing demo companies
+      } else if (currentCompany.id === 'company-1') {
+        // Only show demo data for the specific demo company
         setCompanyData({
           activeDepartments: 4,
           totalEmployees: 247,
@@ -211,6 +211,19 @@ export default function Dashboard() {
           needAttentionDepartments: 3,
           onDutyStaff: 89,
           coverageRate: 87
+        });
+      } else {
+        // All other companies start empty
+        setCompanyData({
+          activeDepartments: 0,
+          totalEmployees: 1,
+          activeShifts: 0,
+          attendanceRate: 0,
+          pendingApprovals: 0,
+          criticalDepartments: 0,
+          needAttentionDepartments: 0,
+          onDutyStaff: 0,
+          coverageRate: 0
         });
       }
     }
@@ -254,8 +267,8 @@ export default function Dashboard() {
   const isNewCompany = currentCompany?.createdAt && 
     new Date(currentCompany.createdAt).toDateString() === new Date().toDateString();
   
-  // Show different department data based on company age
-  const departments = isNewCompany ? [] : [
+  // Show different department data based on company
+  const departments = currentCompany?.id === 'company-1' ? [
     { 
       name: language === 'he' ? 'מכירות' : 'Sales', 
       manager: 'Sarah Johnson', 
@@ -291,7 +304,7 @@ export default function Dashboard() {
       ],
       borderColor: 'border-red-400'
     }
-  ];
+  ] : [];
 
   const attendanceData = isNewCompany ? [
     { day: language === 'he' ? 'ב' : 'Mon', rate: 0 },
@@ -301,7 +314,7 @@ export default function Dashboard() {
     { day: language === 'he' ? 'ו' : 'Fri', rate: 0 },
     { day: language === 'he' ? 'ש' : 'Sat', rate: 0 },
     { day: language === 'he' ? 'א' : 'Sun', rate: 0 }
-  ] : [
+  ] : currentCompany?.id === 'company-1' ? [
     { day: language === 'he' ? 'ב' : 'Mon', rate: 96 },
     { day: language === 'he' ? 'ג' : 'Tue', rate: 94 },
     { day: language === 'he' ? 'ד' : 'Wed', rate: 98 },
@@ -309,6 +322,14 @@ export default function Dashboard() {
     { day: language === 'he' ? 'ו' : 'Fri', rate: 95 },
     { day: language === 'he' ? 'ש' : 'Sat', rate: 89 },
     { day: language === 'he' ? 'א' : 'Sun', rate: 91 }
+  ] : [
+    { day: language === 'he' ? 'ב' : 'Mon', rate: 0 },
+    { day: language === 'he' ? 'ג' : 'Tue', rate: 0 },
+    { day: language === 'he' ? 'ד' : 'Wed', rate: 0 },
+    { day: language === 'he' ? 'ה' : 'Thu', rate: 0 },
+    { day: language === 'he' ? 'ו' : 'Fri', rate: 0 },
+    { day: language === 'he' ? 'ש' : 'Sat', rate: 0 },
+    { day: language === 'he' ? 'א' : 'Sun', rate: 0 }
   ];
 
   const getStatusColor = (status: string) => {

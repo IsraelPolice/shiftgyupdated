@@ -23,14 +23,15 @@ import {
 
 export default function Departments() {
   const { language, isRTL } = useLanguage();
+  const { currentCompany } = useAuth();
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
 
-  // Sample departments data (in real app, this would come from API)
-  const departments = [
+  // Sample departments data - only for demo company
+  const demoDepartments = [
     {
       id: 1,
       name: 'Sales',
@@ -100,6 +101,33 @@ export default function Departments() {
       lastActivity: '15 minutes ago'
     }
   ];
+  
+  // Initialize departments based on company
+  const [departments, setDepartments] = useState(() => {
+    if (currentCompany?.id === 'company-1') {
+      return demoDepartments;
+    }
+    // For new companies, start with just a General department
+    return [
+      {
+        id: 1,
+        name: 'General',
+        nameHe: 'כללי',
+        description: 'General department for all employees',
+        descriptionHe: 'מחלקה כללית לכל העובדים',
+        manager: currentCompany?.mainContactName || 'Admin',
+        employeeCount: 1,
+        activeShifts: 0,
+        status: 'active',
+        location: 'Main Office',
+        locationHe: 'משרד ראשי',
+        email: currentCompany?.mainContactEmail || 'admin@company.com',
+        phone: '+1 (555) 123-4567',
+        color: 'blue',
+        lastActivity: 'Just created'
+      }
+    ];
+  });
 
   const filteredDepartments = departments.filter(dept => {
     const matchesSearch = dept.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

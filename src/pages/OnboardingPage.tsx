@@ -215,10 +215,7 @@ export default function OnboardingPage() {
       
       // Create default departments for the company
       const defaultDepartments = [
-        { name: 'Management', description: 'Company management and administration' },
-        { name: 'Sales', description: 'Sales and customer relations' },
-        { name: 'Operations', description: 'Daily operations and logistics' },
-        { name: 'Customer Service', description: 'Customer support and service' }
+        { name: 'General', description: 'General department for all employees' }
       ];
       
       for (const dept of defaultDepartments) {

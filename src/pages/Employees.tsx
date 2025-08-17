@@ -31,7 +31,8 @@ const mockJobTemplates = [
   { id: '5', name: 'Night Shift Specialist', category: 'special' }
 ];
 
-const initialEmployees = [
+// Mock employees only for demo company
+const demoEmployees = [
   {
     id: '1',
     name: 'Sarah Johnson',
@@ -167,7 +168,16 @@ export default function EmployeesSimple() {
   const [selectedDepartment, setSelectedDepartment] = useState('');
   const [selectedTag, setSelectedTag] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
-  const [employees, setEmployees] = useState(initialEmployees);
+  const { currentCompany } = useAuth();
+  
+  // Initialize employees based on company
+  const [employees, setEmployees] = useState(() => {
+    if (currentCompany?.id === 'company-1') {
+      return demoEmployees;
+    }
+    return [];
+  });
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<any>(null);
   const [showInviteModal, setShowInviteModal] = useState(false);
