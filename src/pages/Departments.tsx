@@ -246,12 +246,25 @@ export default function Departments() {
             }
           });
           
-          setDepartments(allDepartments);
+          // Calculate employee counts for each department
+          const departmentsWithCounts = allDepartments.map(dept => {
+            const employeeCount = availableEmployees.filter(emp => emp.department === dept.name).length;
+            return { ...dept, employeeCount };
+          });
+          
+          setDepartments(departmentsWithCounts);
         } catch (firestoreError) {
           console.warn('Firestore access denied, loading from localStorage:', firestoreError);
           // Fallback to localStorage only
           const localDepartments = JSON.parse(localStorage.getItem(`departments_${currentCompany.id}`) || '[]');
-          setDepartments(localDepartments);
+          
+          // Calculate employee counts for each department
+          const departmentsWithCounts = localDepartments.map(dept => {
+            const employeeCount = availableEmployees.filter(emp => emp.department === dept.name).length;
+            return { ...dept, employeeCount };
+          });
+          
+          setDepartments(departmentsWithCounts);
         }
       } catch (error) {
         console.warn('Error loading departments:', error);
@@ -263,7 +276,7 @@ export default function Departments() {
     };
 
     loadDepartments();
-  }, [currentCompany?.id]);
+  }, [currentCompany?.id, availableEmployees]);
 
   const filteredDepartments = departments.filter(dept => {
     const matchesSearch = dept.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -318,6 +331,188 @@ export default function Departments() {
   const handleEditDepartment = (department) => {
     setEditingDepartment(department);
     setShowEditModal(true);
+  };
+
+  const EditDepartmentModal = () => {
+    const [formData, setFormData] = useState({
+      name: editingDepartment?.name || '',
+      nameHe: editingDepartment?.nameHe || '',
+      description: editingDepartment?.description || '',
+      descriptionHe: editingDepartment?.descriptionHe || '',
+      manager: editingDepartment?.manager || '',
+      location: editingDepartment?.location || '',
+      locationHe: editingDepartment?.locationHe || '',
+      email: editingDepartment?.email || '',
+      phone: editingDepartment?.phone || '',
+      color: editingDepartment?.color || 'blue'
+    });
+
+    const colorOptions = [
+      { value: 'blue', label: 'Blue', class: 'bg-blue-500' },
+      { value: 'green', label: 'Green', class: 'bg-green-500' },
+      { value: 'purple', label: 'Purple', class: 'bg-purple-500' },
+      { value: 'red', label: 'Red', class: 'bg-red-500' },
+      { value: 'orange', label: 'Orange', class: 'bg-orange-500' },
+      { value: 'indigo', label: 'Indigo', class: 'bg-indigo-500' }
+    ];
+
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      if (!formData.name.trim()) return;
+
+      const updatedDepartment = {
+        ...editingDepartment,
+        ...formData,
+        updatedAt: new Date(),
+        updatedBy: user?.id
+      };
+
+      try {
+        // Update in state
+        setDepartments(prev => prev.map(dept => 
+          dept.id === editingDepartment.id ? updatedDepartment : dept
+        ));
+        
+        // Update in localStorage
+        const updatedDepartments = departments.map(dept => 
+          dept.id === editingDepartment.id ? updatedDepartment : dept
+        );
+        localStorage.setItem(`departments_${currentCompany.id}`, JSON.stringify(updatedDepartments));
+        
+        setShowEditModal(false);
+        setEditingDepartment(null);
+      } catch (error) {
+        console.error('Error updating department:', error);
+      }
+    };
+
+    if (!showEditModal || !editingDepartment) return null;
+
+    return (
+      <div className="fixed inset-0 bg-gray-900/50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-900">
+                {language === 'he' ? 'ערוך מחלקה' : 'Edit Department'}
+              </h2>
+              <button 
+                onClick={() => {
+                  setShowEditModal(false);
+                  setEditingDepartment(null);
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+          </div>
+          
+          <form onSubmit={handleSubmit} className="p-6">
+            <div className="space-y-6">
+              {/* Department Names */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {language === 'he' ? 'שם מחלקה (אנגלית)' : 'Department Name (English)'} *
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="e.g., Sales"
+                    value={formData.name}
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {language === 'he' ? 'שם מחלקה (עברית)' : 'Department Name (Hebrew)'}
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="למשל: מכירות"
+                    value={formData.nameHe}
+                    onChange={(e) => setFormData({...formData, nameHe: e.target.value})}
+                    dir="rtl"
+                  />
+                </div>
+              </div>
+
+              {/* Manager and Contact */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {language === 'he' ? 'מנהל מחלקה' : 'Department Manager'}
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder={language === 'he' ? 'שם המנהל' : 'Manager name'}
+                    value={formData.manager}
+                    onChange={(e) => setFormData({...formData, manager: e.target.value})}
+                    dir={isRTL ? 'rtl' : 'ltr'}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {language === 'he' ? 'מיקום' : 'Location'}
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder={language === 'he' ? 'מיקום המחלקה' : 'Department location'}
+                    value={formData.location}
+                    onChange={(e) => setFormData({...formData, location: e.target.value})}
+                    dir={isRTL ? 'rtl' : 'ltr'}
+                  />
+                </div>
+              </div>
+
+              {/* Color Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {language === 'he' ? 'צבע מחלקה' : 'Department Color'}
+                </label>
+                <div className="flex gap-3">
+                  {colorOptions.map(color => (
+                    <button
+                      key={color.value}
+                      type="button"
+                      onClick={() => setFormData({...formData, color: color.value})}
+                      className={`w-8 h-8 rounded-full ${color.class} ${
+                        formData.color === color.value ? 'ring-2 ring-offset-2 ring-gray-400' : ''
+                      }`}
+                      title={color.label}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3 justify-end mt-6 pt-6 border-t border-gray-200">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowEditModal(false);
+                  setEditingDepartment(null);
+                }}
+                className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                {language === 'he' ? 'ביטול' : 'Cancel'}
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              >
+                {language === 'he' ? 'שמור שינויים' : 'Save Changes'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
   };
 
   const handleAddEmployeesToDepartment = (department) => {
@@ -845,6 +1040,8 @@ export default function Departments() {
 
       {/* Create Department Modal */}
       {showCreateModal && <CreateDepartmentModal />}
+      {/* Edit Department Modal */}
+      <EditDepartmentModal />
       {showAssignEmployeesModal && <AssignEmployeesModal />}
     </div>
   );
