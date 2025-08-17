@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import { useEffect } from 'react';
+import { collection, addDoc, getDocs, query, where, updateDoc, doc } from 'firebase/firestore';
+import { db } from '../firebase/config';
 import { 
   Search, 
   Plus, 
@@ -168,15 +171,10 @@ export default function EmployeesSimple() {
   const [selectedDepartment, setSelectedDepartment] = useState('');
   const [selectedTag, setSelectedTag] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
-  const { currentCompany } = useAuth();
+  const { currentCompany, user } = useAuth();
   
-  // Initialize employees based on company
-  const [employees, setEmployees] = useState(() => {
-    if (currentCompany?.id === 'company-1') {
-      return demoEmployees;
-    }
-    return [];
-  });
+  const [employees, setEmployees] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<any>(null);
@@ -189,6 +187,47 @@ export default function EmployeesSimple() {
   const { t, language } = useLanguage();
   const { hasPermission } = useAuth();
   const [showTagTooltip, setShowTagTooltip] = useState(false);
+
+  // Load employees from Firestore
+  useEffect(() => {
+    const loadEmployees = async () => {
+      if (!currentCompany?.id) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        // For demo company, use mock data
+        if (currentCompany.id === 'company-1') {
+          setEmployees(demoEmployees);
+          setIsLoading(false);
+          return;
+        }
+
+        // For real companies, load from Firestore
+        const employeesQuery = query(
+          collection(db, 'employees'),
+          where('companyId', '==', currentCompany.id)
+        );
+        
+        const snapshot = await getDocs(employeesQuery);
+        const employeesList = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        
+        setEmployees(employeesList);
+      } catch (error) {
+        console.warn('Error loading employees from Firestore:', error);
+        // Fallback to empty array for new companies
+        setEmployees([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadEmployees();
+  }, [currentCompany?.id]);
 
   const canManageEmployees = hasPermission('manage_employees');
 
@@ -207,15 +246,68 @@ export default function EmployeesSimple() {
   const statuses = [...new Set(employees.map(emp => emp.status))];
   const allTags = [...new Set(employees.flatMap(emp => emp.tags || []))];
 
-  const handleAddEmployee = (employeeData: any) => {
-    setEmployees(prev => [...prev, { ...employeeData, id: Date.now().toString() }]);
+  const handleAddEmployee = async (employeeData: any) => {
+    if (!currentCompany?.id) return;
+
+    try {
+      // For demo company, just update local state
+      if (currentCompany.id === 'company-1') {
+        setEmployees(prev => [...prev, { ...employeeData, id: Date.now().toString() }]);
+        return;
+      }
+
+      // For real companies, save to Firestore
+      const employeeToSave = {
+        ...employeeData,
+        companyId: currentCompany.id,
+        createdAt: new Date(),
+        createdBy: user?.id
+      };
+
+      const docRef = await addDoc(collection(db, 'employees'), employeeToSave);
+      
+      // Update local state with the new employee including Firestore ID
+      setEmployees(prev => [...prev, { ...employeeToSave, id: docRef.id }]);
+    } catch (error) {
+      console.error('Error adding employee:', error);
+      // Fallback to local state if Firestore fails
+      setEmployees(prev => [...prev, { ...employeeData, id: Date.now().toString() }]);
+    }
   };
 
-  const handleEditEmployee = (employeeData: any) => {
-    setEmployees(prev => prev.map(emp => 
-      emp.id === employeeData.id ? employeeData : emp
-    ));
-    setEditingEmployee(null);
+  const handleEditEmployee = async (employeeData: any) => {
+    if (!currentCompany?.id) return;
+
+    try {
+      // For demo company, just update local state
+      if (currentCompany.id === 'company-1') {
+        setEmployees(prev => prev.map(emp => 
+          emp.id === employeeData.id ? employeeData : emp
+        ));
+        setEditingEmployee(null);
+        return;
+      }
+
+      // For real companies, update in Firestore
+      await updateDoc(doc(db, 'employees', employeeData.id), {
+        ...employeeData,
+        updatedAt: new Date(),
+        updatedBy: user?.id
+      });
+      
+      // Update local state
+      setEmployees(prev => prev.map(emp => 
+        emp.id === employeeData.id ? employeeData : emp
+      ));
+      setEditingEmployee(null);
+    } catch (error) {
+      console.error('Error updating employee:', error);
+      // Fallback to local state update
+      setEmployees(prev => prev.map(emp => 
+        emp.id === employeeData.id ? employeeData : emp
+      ));
+      setEditingEmployee(null);
+    }
   };
 
   const openEditModal = (employee: any) => {
@@ -248,8 +340,40 @@ export default function EmployeesSimple() {
     setSelectedEmployee(null);
   };
 
-  const handleImportEmployees = (importedEmployees: any[]) => {
-    setEmployees(prev => [...prev, ...importedEmployees]);
+  const handleImportEmployees = async (importedEmployees: any[]) => {
+    if (!currentCompany?.id) return;
+
+    try {
+      // For demo company, just update local state
+      if (currentCompany.id === 'company-1') {
+        setEmployees(prev => [...prev, ...importedEmployees]);
+        return;
+      }
+
+      // For real companies, save to Firestore
+      const employeesToSave = importedEmployees.map(emp => ({
+        ...emp,
+        companyId: currentCompany.id,
+        createdAt: new Date(),
+        createdBy: user?.id
+      }));
+
+      // Save all employees to Firestore
+      const promises = employeesToSave.map(emp => addDoc(collection(db, 'employees'), emp));
+      const docRefs = await Promise.all(promises);
+      
+      // Update local state with Firestore IDs
+      const employeesWithIds = employeesToSave.map((emp, index) => ({
+        ...emp,
+        id: docRefs[index].id
+      }));
+      
+      setEmployees(prev => [...prev, ...employeesWithIds]);
+    } catch (error) {
+      console.error('Error importing employees:', error);
+      // Fallback to local state
+      setEmployees(prev => [...prev, ...importedEmployees]);
+    }
   };
 
   const getTemplateName = (templateId: string) => {
@@ -485,7 +609,11 @@ export default function EmployeesSimple() {
         </div>
 
         {/* Employee Cards Grid */}
-        {viewMode === 'card' ? (
+        {isLoading ? (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          </div>
+        ) : viewMode === 'card' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredEmployees.map((employee) => (
               <div 

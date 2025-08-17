@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { collection, addDoc, getDocs, query, where, updateDoc, doc } from 'firebase/firestore';
+import { db } from '../firebase/config';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -24,12 +26,13 @@ import {
 
 export default function Departments() {
   const { language, isRTL } = useLanguage();
-  const { currentCompany } = useAuth();
+  const { currentCompany, user } = useAuth();
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [isLoading, setIsLoading] = useState(true);
 
   // Sample departments data - only for demo company
   const demoDepartments = [
@@ -103,32 +106,48 @@ export default function Departments() {
     }
   ];
   
-  // Initialize departments based on company
-  const [departments, setDepartments] = useState(() => {
-    if (currentCompany?.id === 'company-1') {
-      return demoDepartments;
-    }
-    // For new companies, start with just a General department
-    return [
-      {
-        id: 1,
-        name: 'General',
-        nameHe: 'כללי',
-        description: 'General department for all employees',
-        descriptionHe: 'מחלקה כללית לכל העובדים',
-        manager: currentCompany?.mainContactName || 'Admin',
-        employeeCount: 1,
-        activeShifts: 0,
-        status: 'active',
-        location: 'Main Office',
-        locationHe: 'משרד ראשי',
-        email: currentCompany?.mainContactEmail || 'admin@company.com',
-        phone: '+1 (555) 123-4567',
-        color: 'blue',
-        lastActivity: 'Just created'
+  const [departments, setDepartments] = useState([]);
+
+  // Load departments from Firestore
+  useEffect(() => {
+    const loadDepartments = async () => {
+      if (!currentCompany?.id) {
+        setIsLoading(false);
+        return;
       }
-    ];
-  });
+
+      try {
+        // For demo company, use mock data
+        if (currentCompany.id === 'company-1') {
+          setDepartments(demoDepartments);
+          setIsLoading(false);
+          return;
+        }
+
+        // For real companies, load from Firestore
+        const departmentsQuery = query(
+          collection(db, 'departments'),
+          where('companyId', '==', currentCompany.id)
+        );
+        
+        const snapshot = await getDocs(departmentsQuery);
+        const departmentsList = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        
+        setDepartments(departmentsList);
+      } catch (error) {
+        console.warn('Error loading departments from Firestore:', error);
+        // Fallback to empty array for new companies
+        setDepartments([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadDepartments();
+  }, [currentCompany?.id]);
 
   const filteredDepartments = departments.filter(dept => {
     const matchesSearch = dept.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -359,9 +378,7 @@ export default function Departments() {
             </button>
             <button
               onClick={() => {
-                // Handle department creation here
-                console.log('Creating department:', formData);
-                setShowCreateModal(false);
+                handleCreateDepartment(formData);
               }}
               className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
             >
@@ -371,6 +388,58 @@ export default function Departments() {
         </div>
       </div>
     );
+  };
+
+  const handleCreateDepartment = async (formData: any) => {
+    if (!currentCompany?.id) return;
+
+    try {
+      // For demo company, just update local state
+      if (currentCompany.id === 'company-1') {
+        const newDepartment = {
+          id: Date.now(),
+          ...formData,
+          employeeCount: 0,
+          activeShifts: 0,
+          status: 'active',
+          lastActivity: 'Just created'
+        };
+        setDepartments(prev => [...prev, newDepartment]);
+        setShowCreateModal(false);
+        return;
+      }
+
+      // For real companies, save to Firestore
+      const departmentToSave = {
+        ...formData,
+        companyId: currentCompany.id,
+        employeeCount: 0,
+        activeShifts: 0,
+        status: 'active',
+        lastActivity: 'Just created',
+        createdAt: new Date(),
+        createdBy: user?.id
+      };
+
+      const docRef = await addDoc(collection(db, 'departments'), departmentToSave);
+      
+      // Update local state with the new department including Firestore ID
+      setDepartments(prev => [...prev, { ...departmentToSave, id: docRef.id }]);
+      setShowCreateModal(false);
+    } catch (error) {
+      console.error('Error creating department:', error);
+      // Fallback to local state if Firestore fails
+      const newDepartment = {
+        id: Date.now(),
+        ...formData,
+        employeeCount: 0,
+        activeShifts: 0,
+        status: 'active',
+        lastActivity: 'Just created'
+      };
+      setDepartments(prev => [...prev, newDepartment]);
+      setShowCreateModal(false);
+    }
   };
 
   return (
@@ -484,7 +553,12 @@ export default function Departments() {
         </div>
 
         {/* Departments Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {isLoading ? (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredDepartments.map(department => (
             <div key={department.id} className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
               {/* Department Header */}
@@ -564,7 +638,8 @@ export default function Departments() {
               </div>
             </div>
           ))}
-        </div>
+          </div>
+        )}
 
         {/* Empty State */}
         {filteredDepartments.length === 0 && (
