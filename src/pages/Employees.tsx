@@ -264,6 +264,38 @@ export default function EmployeesSimple() {
   const statuses = [...new Set(employees.map(emp => emp.status))];
   const allTags = [...new Set(employees.flatMap(emp => emp.tags || []))];
 
+  // Load departments from the same source as Departments page
+  const [availableDepartments, setAvailableDepartments] = useState([]);
+  
+  useEffect(() => {
+    const loadDepartments = async () => {
+      if (!currentCompany?.id) return;
+
+      try {
+        // For demo company, use mock data
+        if (currentCompany.id === 'company-1') {
+          const mockDepartments = [
+            { id: '1', name: 'Sales' },
+            { id: '2', name: 'Operations' },
+            { id: '3', name: 'Customer Service' },
+            { id: '4', name: 'Security' }
+          ];
+          setAvailableDepartments(mockDepartments);
+          return;
+        }
+
+        // For real companies, load from localStorage
+        const localDepartments = JSON.parse(localStorage.getItem(`departments_${currentCompany.id}`) || '[]');
+        setAvailableDepartments(localDepartments);
+      } catch (error) {
+        console.warn('Error loading departments for filter:', error);
+        setAvailableDepartments([]);
+      }
+    };
+
+    loadDepartments();
+  }, [currentCompany?.id]);
+
   const handleAddEmployee = async (employeeData: any) => {
     if (!currentCompany?.id) return;
 
