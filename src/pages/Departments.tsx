@@ -36,6 +36,178 @@ export default function Departments() {
   const [editingDepartment, setEditingDepartment] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedDepartment, setSelectedDepartment] = useState(null);
+  const [showAssignEmployeesModal, setShowAssignEmployeesModal] = useState(false);
+  const [availableEmployees, setAvailableEmployees] = useState([]);
+
+  // Load employees for assignment
+  useEffect(() => {
+    const loadEmployees = async () => {
+      if (!currentCompany?.id) return;
+
+      try {
+        // Load employees from localStorage (same source as Employees page)
+        const localEmployees = JSON.parse(localStorage.getItem(`employees_${currentCompany.id}`) || '[]');
+        setAvailableEmployees(localEmployees);
+      } catch (error) {
+        console.warn('Error loading employees:', error);
+        setAvailableEmployees([]);
+      }
+    };
+
+    loadEmployees();
+  }, [currentCompany?.id]);
+
+  const AssignEmployeesModal = () => {
+    const [selectedEmployees, setSelectedEmployees] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
+
+    if (!selectedDepartment) return null;
+
+    // Filter employees not in this department
+    const unassignedEmployees = availableEmployees.filter(emp => 
+      emp.department !== selectedDepartment.name &&
+      emp.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const handleAssignEmployees = async () => {
+      if (selectedEmployees.length === 0) return;
+
+      try {
+        // Update employees' department
+        const updatedEmployees = availableEmployees.map(emp => 
+          selectedEmployees.includes(emp.id) 
+            ? { ...emp, department: selectedDepartment.name }
+            : emp
+        );
+
+        // Save to localStorage
+        localStorage.setItem(`employees_${currentCompany.id}`, JSON.stringify(updatedEmployees));
+        setAvailableEmployees(updatedEmployees);
+
+        // Update department employee count
+        const updatedDepartments = departments.map(dept => 
+          dept.id === selectedDepartment.id 
+            ? { ...dept, employeeCount: (dept.employeeCount || 0) + selectedEmployees.length }
+            : dept
+        );
+        setDepartments(updatedDepartments);
+        localStorage.setItem(`departments_${currentCompany.id}`, JSON.stringify(updatedDepartments));
+
+        setShowAssignEmployeesModal(false);
+        setSelectedEmployees([]);
+      } catch (error) {
+        console.error('Error assigning employees:', error);
+      }
+    };
+
+    const toggleEmployee = (employeeId) => {
+      setSelectedEmployees(prev => 
+        prev.includes(employeeId)
+          ? prev.filter(id => id !== employeeId)
+          : [...prev, employeeId]
+      );
+    };
+
+    return (
+      <div className="fixed inset-0 bg-gray-900/50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-900">
+                {language === 'he' 
+                  ? `הוסף עובדים למחלקת ${selectedDepartment.name}`
+                  : `Add Employees to ${selectedDepartment.name} Department`}
+              </h2>
+              <button 
+                onClick={() => setShowAssignEmployeesModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+          </div>
+          
+          <div className="p-6">
+            {/* Search */}
+            <div className="mb-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder={language === 'he' ? 'חפש עובדים...' : 'Search employees...'}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            {/* Employee List */}
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {unassignedEmployees.length === 0 ? (
+                <div className="text-center py-8">
+                  <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    {language === 'he' ? 'אין עובדים זמינים' : 'No Available Employees'}
+                  </h3>
+                  <p className="text-gray-500">
+                    {language === 'he' 
+                      ? 'כל העובדים כבר משויכים למחלקה זו או למחלקות אחרות'
+                      : 'All employees are already assigned to this or other departments'}
+                  </p>
+                </div>
+              ) : (
+                unassignedEmployees.map(employee => (
+                  <label
+                    key={employee.id}
+                    className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedEmployees.includes(employee.id)}
+                      onChange={() => toggleEmployee(employee.id)}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <div className="ml-3 flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-medium">
+                        {employee.name.split(' ').map(n => n[0]).join('')}
+                      </div>
+                      <div>
+                        <div className="font-medium text-gray-900">{employee.name}</div>
+                        <div className="text-sm text-gray-500">{employee.role}</div>
+                        <div className="text-xs text-gray-400">
+                          {language === 'he' ? 'מחלקה נוכחית:' : 'Current department:'} {employee.department}
+                        </div>
+                      </div>
+                    </div>
+                  </label>
+                ))
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-200">
+              <button
+                onClick={() => setShowAssignEmployeesModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                {language === 'he' ? 'ביטול' : 'Cancel'}
+              </button>
+              <button
+                onClick={handleAssignEmployees}
+                disabled={selectedEmployees.length === 0}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {language === 'he' 
+                  ? `הוסף ${selectedEmployees.length} עובדים`
+                  : `Add ${selectedEmployees.length} Employee${selectedEmployees.length !== 1 ? 's' : ''}`}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   const [departments, setDepartments] = useState([]);
 
@@ -149,13 +321,8 @@ export default function Departments() {
   };
 
   const handleAddEmployeesToDepartment = (department) => {
-    // Navigate to employees page and trigger add employee modal
-    navigate('/employees', { 
-      state: { 
-        openAddModal: true,
-        preSelectedDepartment: department.name 
-      } 
-    });
+    setSelectedDepartment(department);
+    setShowAssignEmployeesModal(true);
   };
 
   const handleDeleteDepartment = async (departmentId) => {
@@ -678,6 +845,7 @@ export default function Departments() {
 
       {/* Create Department Modal */}
       {showCreateModal && <CreateDepartmentModal />}
+      {showAssignEmployeesModal && <AssignEmployeesModal />}
     </div>
   );
 }
