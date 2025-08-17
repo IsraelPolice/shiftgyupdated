@@ -26,7 +26,16 @@ export default function LoginPage() {
       await login(email, password);
       navigate('/');
     } catch (err) {
-      setError(t('login.invalid_credentials'));
+      console.error('Login error:', err);
+      if (err.code === 'auth/invalid-credential') {
+        setError('Invalid email or password. Please check your credentials and try again.');
+      } else if (err.code === 'auth/user-not-found') {
+        setError('No account found with this email address.');
+      } else if (err.code === 'auth/wrong-password') {
+        setError('Incorrect password. Please try again.');
+      } else {
+        setError(t('login.invalid_credentials'));
+      }
     } finally {
       setLoading(false);
     }

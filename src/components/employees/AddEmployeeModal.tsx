@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, User, Mail, Phone, MapPin, Building2, DollarSign, Calendar, Clock, Tag, Plus, X as XIcon, HelpCircle, Check, ChevronDown } from 'lucide-react';
+import { X, User, Mail, Phone, MapPin, Building2, DollarSign, Calendar, Clock, Tag, Plus, X as XIcon, HelpCircle, Check, ChevronDown, Info } from 'lucide-react';
 import { usePresence } from '../../contexts/PresenceContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
