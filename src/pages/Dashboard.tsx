@@ -161,58 +161,134 @@ const ClockInOutWidget = () => {
 
 // Main Dashboard Component
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, currentCompany } = useAuth();
   const { language, isRTL, t } = useLanguage();
   const navigate = useNavigate();
   
-  // Mock data
-  const mockData = {
-    activeDepartments: 4,
-    totalEmployees: 247,
-    activeShifts: 42,
-    attendanceRate: 94.2,
-    pendingApprovals: 7,
-    criticalDepartments: 2,
-    needAttentionDepartments: 3,
-    onDutyStaff: 89,
-    coverageRate: 87
-  };
+  // Real company data - start with empty state for new companies
+  const [companyData, setCompanyData] = useState({
+    activeDepartments: 0,
+    totalEmployees: 0,
+    activeShifts: 0,
+    attendanceRate: 0,
+    pendingApprovals: 0,
+    criticalDepartments: 0,
+    needAttentionDepartments: 0,
+    onDutyStaff: 0,
+    coverageRate: 0
+  });
+  
+  // Load real company data
+  useEffect(() => {
+    if (currentCompany) {
+      // In a real app, this would fetch data from Firestore
+      // For now, check if this is a new company (created today)
+      const isNewCompany = currentCompany.createdAt && 
+        new Date(currentCompany.createdAt).toDateString() === new Date().toDateString();
+      
+      if (isNewCompany) {
+        // Keep empty state for new companies
+        setCompanyData({
+          activeDepartments: 4, // Default departments created during onboarding
+          totalEmployees: 1, // Just the admin user
+          activeShifts: 0,
+          attendanceRate: 0,
+          pendingApprovals: 0,
+          criticalDepartments: 0,
+          needAttentionDepartments: 0,
+          onDutyStaff: 0,
+          coverageRate: 0
+        });
+      } else {
+        // Load demo data for existing demo companies
+        setCompanyData({
+          activeDepartments: 4,
+          totalEmployees: 247,
+          activeShifts: 42,
+          attendanceRate: 94.2,
+          pendingApprovals: 7,
+          criticalDepartments: 2,
+          needAttentionDepartments: 3,
+          onDutyStaff: 89,
+          coverageRate: 87
+        });
+      }
+    }
+  }, [currentCompany]);
 
   // Stats data with proper text labels
   const statsData = [
     {
       icon: <Building2 className="w-6 h-6 text-blue-600" />,
-      value: mockData.activeDepartments,
+      value: companyData.activeDepartments,
       label: language === 'he' ? 'מחלקות פעילות' : 'Active Departments',
       color: 'blue'
     },
     {
       icon: <Users className="w-6 h-6 text-green-600" />,
-      value: mockData.totalEmployees,
+      value: companyData.totalEmployees,
       label: language === 'he' ? 'סך עובדים' : 'Total Employees',
       color: 'green'
     },
     {
       icon: <Calendar className="w-6 h-6 text-purple-600" />,
-      value: mockData.activeShifts,
+      value: companyData.activeShifts,
       label: language === 'he' ? 'משמרות פעילות' : 'Active Shifts',
       color: 'purple'
     },
     {
       icon: <TrendingUp className="w-6 h-6 text-orange-600" />,
-      value: `${mockData.attendanceRate}%`,
+      value: companyData.attendanceRate > 0 ? `${companyData.attendanceRate}%` : '0%',
       label: language === 'he' ? 'שיעור נוכחות' : 'Attendance Rate',
       color: 'orange'
     },
     {
       icon: <AlertTriangle className="w-6 h-6 text-red-600" />,
-      value: mockData.pendingApprovals,
+      value: companyData.pendingApprovals,
       label: language === 'he' ? 'אישורים ממתינים' : 'Pending Approvals',
       color: 'red'
     }
   ];
 
-  const departments = [
+  // Check if this is a new company
+  const isNewCompany = currentCompany?.createdAt && 
+    new Date(currentCompany.createdAt).toDateString() === new Date().toDateString();
+  
+  // Show different department data based on company age
+  const departments = isNewCompany ? [
+    { 
+      name: language === 'he' ? 'ניהול' : 'Management', 
+      manager: user?.name || 'Admin', 
+      staff: '1/1', 
+      status: 'good', 
+      issues: [],
+      borderColor: 'border-green-400'
+    },
+    { 
+      name: language === 'he' ? 'מכירות' : 'Sales', 
+      manager: language === 'he' ? 'לא הוקצה' : 'Not assigned', 
+      staff: '0/0', 
+      status: 'empty', 
+      issues: [language === 'he' ? 'אין עובדים' : 'No employees'],
+      borderColor: 'border-gray-400'
+    },
+    { 
+      name: language === 'he' ? 'תפעול' : 'Operations', 
+      manager: language === 'he' ? 'לא הוקצה' : 'Not assigned', 
+      staff: '0/0', 
+      status: 'empty', 
+      issues: [language === 'he' ? 'אין עובדים' : 'No employees'],
+      borderColor: 'border-gray-400'
+    },
+    { 
+      name: language === 'he' ? 'שירות לקוחות' : 'Customer Service', 
+      manager: language === 'he' ? 'לא הוקצה' : 'Not assigned', 
+      staff: '0/0', 
+      status: 'empty', 
+      issues: [language === 'he' ? 'אין עובדים' : 'No employees'],
+      borderColor: 'border-gray-400'
+    }
+  ] : [
     { 
       name: language === 'he' ? 'מכירות' : 'Sales', 
       manager: 'Sarah Johnson', 
@@ -250,7 +326,15 @@ export default function Dashboard() {
     }
   ];
 
-  const attendanceData = [
+  const attendanceData = isNewCompany ? [
+    { day: language === 'he' ? 'ב' : 'Mon', rate: 0 },
+    { day: language === 'he' ? 'ג' : 'Tue', rate: 0 },
+    { day: language === 'he' ? 'ד' : 'Wed', rate: 0 },
+    { day: language === 'he' ? 'ה' : 'Thu', rate: 0 },
+    { day: language === 'he' ? 'ו' : 'Fri', rate: 0 },
+    { day: language === 'he' ? 'ש' : 'Sat', rate: 0 },
+    { day: language === 'he' ? 'א' : 'Sun', rate: 0 }
+  ] : [
     { day: language === 'he' ? 'ב' : 'Mon', rate: 96 },
     { day: language === 'he' ? 'ג' : 'Tue', rate: 94 },
     { day: language === 'he' ? 'ד' : 'Wed', rate: 98 },
@@ -265,6 +349,7 @@ export default function Dashboard() {
       case 'good': return 'bg-green-500';
       case 'warning': return 'bg-yellow-500';
       case 'critical': return 'bg-red-500';
+      case 'empty': return 'bg-gray-500';
       default: return 'bg-gray-500';
     }
   };
@@ -274,6 +359,7 @@ export default function Dashboard() {
       case 'good': return 'bg-green-50 border-green-200';
       case 'warning': return 'bg-yellow-50 border-yellow-200';
       case 'critical': return 'bg-red-50 border-red-200';
+      case 'empty': return 'bg-gray-50 border-gray-200';
       default: return 'bg-gray-50 border-gray-200';
     }
   };
@@ -348,6 +434,163 @@ export default function Dashboard() {
   const handlePendingApprovalsStatsClick = () => {
     navigate('/schedules?view=approvals&filter=pending');
   };
+  
+  // Show welcome message for new companies
+  if (isNewCompany) {
+    return (
+      <div className="w-full" dir={isRTL ? 'rtl' : 'ltr'}>
+        {/* Welcome Message for New Company */}
+        <div className={`bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-12 ${isRTL ? 'text-right' : 'text-left'}`}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="w-10 h-10 text-white" />
+            </div>
+            <h1 className="text-4xl font-bold mb-4">
+              {language === 'he' 
+                ? `ברוכים הבאים ל-ShiftGY, ${currentCompany?.name}!`
+                : `Welcome to ShiftGY, ${currentCompany?.name}!`
+              }
+            </h1>
+            <p className="text-xl text-blue-100 mb-8">
+              {language === 'he' 
+                ? 'המערכת שלך מוכנה! בואו נתחיל להגדיר את הארגון שלך'
+                : 'Your system is ready! Let\'s start setting up your organization'
+              }
+            </p>
+          </div>
+        </div>
+
+        {/* Getting Started Cards */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              {language === 'he' ? 'בואו נתחיל' : 'Let\'s Get Started'}
+            </h2>
+            <p className="text-lg text-gray-600">
+              {language === 'he' 
+                ? 'בצע את השלבים הבאים כדי להגדיר את המערכת שלך'
+                : 'Follow these steps to set up your system'
+              }
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Step 1: Add Employees */}
+            <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200 text-center hover:shadow-md transition-shadow">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Users className="w-8 h-8 text-blue-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                {language === 'he' ? '1. הוסף עובדים' : '1. Add Employees'}
+              </h3>
+              <p className="text-gray-600 mb-6">
+                {language === 'he' 
+                  ? 'התחל על ידי הוספת חברי הצוות שלך למערכת'
+                  : 'Start by adding your team members to the system'
+                }
+              </p>
+              <button
+                onClick={() => navigate('/employees')}
+                className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+              >
+                {language === 'he' ? 'הוסף עובדים' : 'Add Employees'}
+                <Users className="w-5 h-5 ml-2" />
+              </button>
+            </div>
+
+            {/* Step 2: Create Schedules */}
+            <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200 text-center hover:shadow-md transition-shadow">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Calendar className="w-8 h-8 text-green-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                {language === 'he' ? '2. צור משמרות' : '2. Create Schedules'}
+              </h3>
+              <p className="text-gray-600 mb-6">
+                {language === 'he' 
+                  ? 'הגדר משמרות ולוחות זמנים לצוות שלך'
+                  : 'Set up shifts and schedules for your team'
+                }
+              </p>
+              <button
+                onClick={() => navigate('/schedules')}
+                className="inline-flex items-center px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
+              >
+                {language === 'he' ? 'צור משמרות' : 'Create Schedules'}
+                <Calendar className="w-5 h-5 ml-2" />
+              </button>
+            </div>
+
+            {/* Step 3: Configure Settings */}
+            <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200 text-center hover:shadow-md transition-shadow">
+              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Settings className="w-8 h-8 text-purple-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                {language === 'he' ? '3. הגדר את המערכת' : '3. Configure System'}
+              </h3>
+              <p className="text-gray-600 mb-6">
+                {language === 'he' 
+                  ? 'התאם את ההגדרות לצרכי הארגון שלך'
+                  : 'Customize settings for your organization'
+                }
+              </p>
+              <button
+                onClick={() => navigate('/settings')}
+                className="inline-flex items-center px-6 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors"
+              >
+                {language === 'he' ? 'הגדרות' : 'Settings'}
+                <Settings className="w-5 h-5 ml-2" />
+              </button>
+            </div>
+          </div>
+
+          {/* Quick Stats for New Company */}
+          <div className="mt-16">
+            <h3 className="text-2xl font-bold text-gray-900 text-center mb-8">
+              {language === 'he' ? 'סטטוס הארגון' : 'Organization Status'}
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 text-center">
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                  <Building2 className="w-6 h-6 text-blue-600" />
+                </div>
+                <p className="text-3xl font-bold text-gray-900">{companyData.activeDepartments}</p>
+                <p className="text-sm text-gray-600">{language === 'he' ? 'מחלקות' : 'Departments'}</p>
+              </div>
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 text-center">
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                  <Users className="w-6 h-6 text-green-600" />
+                </div>
+                <p className="text-3xl font-bold text-gray-900">{companyData.totalEmployees}</p>
+                <p className="text-sm text-gray-600">{language === 'he' ? 'עובדים' : 'Employees'}</p>
+              </div>
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 text-center">
+                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                  <Calendar className="w-6 h-6 text-purple-600" />
+                </div>
+                <p className="text-3xl font-bold text-gray-900">{companyData.activeShifts}</p>
+                <p className="text-sm text-gray-600">{language === 'he' ? 'משמרות' : 'Shifts'}</p>
+              </div>
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 text-center">
+                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                  <TrendingUp className="w-6 h-6 text-orange-600" />
+                </div>
+                <p className="text-3xl font-bold text-gray-900">
+                  {language === 'he' ? 'מוכן' : 'Ready'}
+                </p>
+                <p className="text-sm text-gray-600">{language === 'he' ? 'להתחלה' : 'to Start'}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <Footer />
+      </div>
+    );
+  }
+  
   return (
     <div className="w-full" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Welcome Message Section */}
@@ -369,7 +612,7 @@ export default function Dashboard() {
       </div>
 
       {/* System Alerts Section */}
-      {(criticalDepartments > 0 || needAttentionDepartments > 0 || mockData.pendingApprovals > 0) && (
+      {(criticalDepartments > 0 || needAttentionDepartments > 0 || companyData.pendingApprovals > 0) && (
         <div className="bg-red-500 text-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center gap-2">
@@ -391,7 +634,7 @@ export default function Dashboard() {
                         : `${criticalDepartments} departments critically understaffed`
                       }
                     </button>
-                    {(needAttentionDepartments > 0 || mockData.pendingApprovals > 0) && (
+                    {(needAttentionDepartments > 0 || companyData.pendingApprovals > 0) && (
                       <span className="text-white mx-1">|</span>
                     )}
                   </>
@@ -409,21 +652,21 @@ export default function Dashboard() {
                         : `${needAttentionDepartments} departments need attention`
                       }
                     </button>
-                    {mockData.pendingApprovals > 0 && (
+                    {companyData.pendingApprovals > 0 && (
                       <span className="text-white mx-1">|</span>
                     )}
                   </>
                 )}
                 
-                {mockData.pendingApprovals > 0 && (
+                {companyData.pendingApprovals > 0 && (
                   <button
                     onClick={handlePendingApprovalsClick}
                     className="text-white underline hover:text-red-100 transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 rounded px-1"
                     aria-label={language === 'he' ? 'עבור לתור האישורים' : 'Go to pending approvals queue'}
                   >
                     {language === 'he' 
-                      ? `${mockData.pendingApprovals} אישורים ממתינים`
-                      : `${mockData.pendingApprovals} pending approvals`
+                      ? `${companyData.pendingApprovals} אישורים ממתינים`
+                      : `${companyData.pendingApprovals} pending approvals`
                     }
                   </button>
                 )}
@@ -447,7 +690,7 @@ export default function Dashboard() {
                 <Building2 className="w-6 h-6 text-blue-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{mockData.activeDepartments}</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{companyData.activeDepartments}</p>
                 <p className="text-sm text-gray-600 dark:text-gray-300">{language === 'he' ? 'מחלקות פעילות' : 'Active Departments'}</p>
               </div>
             </div>
@@ -464,7 +707,7 @@ export default function Dashboard() {
                 <Users className="w-6 h-6 text-green-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{mockData.totalEmployees}</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{companyData.totalEmployees}</p>
                 <p className="text-sm text-gray-600 dark:text-gray-300">{language === 'he' ? 'סך עובדים' : 'Total Employees'}</p>
               </div>
             </div>
@@ -481,7 +724,7 @@ export default function Dashboard() {
                 <Calendar className="w-6 h-6 text-purple-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{mockData.activeShifts}</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{companyData.activeShifts}</p>
                 <p className="text-sm text-gray-600 dark:text-gray-300">{language === 'he' ? 'משמרות פעילות' : 'Active Shifts'}</p>
               </div>
             </div>
@@ -498,7 +741,7 @@ export default function Dashboard() {
                 <TrendingUp className="w-6 h-6 text-orange-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{mockData.attendanceRate}%</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{companyData.attendanceRate > 0 ? `${companyData.attendanceRate}%` : '0%'}</p>
                 <p className="text-sm text-gray-600 dark:text-gray-300">{language === 'he' ? 'שיעור נוכחות' : 'Attendance Rate'}</p>
               </div>
             </div>
@@ -515,7 +758,7 @@ export default function Dashboard() {
                 <AlertTriangle className="w-6 h-6 text-red-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{mockData.pendingApprovals}</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{companyData.pendingApprovals}</p>
                 <p className="text-sm text-gray-600 dark:text-gray-300">{language === 'he' ? 'אישורים ממתינים' : 'Pending Approvals'}</p>
               </div>
             </div>
@@ -537,15 +780,15 @@ export default function Dashboard() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600 dark:text-gray-300">{language === 'he' ? 'מחלקות פעילות' : 'Active Departments'}</span>
-                  <span className="font-semibold text-gray-900 dark:text-white">{mockData.activeDepartments}</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">{companyData.activeDepartments}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600 dark:text-gray-300">{language === 'he' ? 'צוות במשמרת' : 'On-Duty Staff'}</span>
-                  <span className="font-semibold text-gray-900 dark:text-white">{mockData.onDutyStaff}</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">{companyData.onDutyStaff}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600 dark:text-gray-300">{language === 'he' ? 'שיעור כיסוי' : 'Coverage Rate'}</span>
-                  <span className="font-semibold text-green-600">{mockData.coverageRate}%</span>
+                  <span className="font-semibold text-green-600">{companyData.coverageRate > 0 ? `${companyData.coverageRate}%` : '0%'}</span>
                 </div>
               </div>
             </div>
@@ -561,12 +804,13 @@ export default function Dashboard() {
                     <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">{day.day}</div>
                     <div 
                       className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-medium ${
+                        day.rate === 0 ? 'bg-gray-200 text-gray-500' :
                         day.rate >= 95 ? 'bg-green-500 text-white' :
                         day.rate >= 90 ? 'bg-yellow-500 text-white' :
                         'bg-red-500 text-white'
                       }`}
                     >
-                      {day.rate}
+                      {day.rate === 0 ? '—' : day.rate}
                     </div>
                   </div>
                 ))}
@@ -582,22 +826,22 @@ export default function Dashboard() {
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600 dark:text-gray-300">{language === 'he' ? 'תאימות כניסה' : 'Clock-in Compliance'}</span>
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    <span className="text-green-600 font-medium">98%</span>
+                    <CheckCircle className="w-4 h-4 text-gray-400" />
+                    <span className="text-gray-500 font-medium">—</span>
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600 dark:text-gray-300">{language === 'he' ? 'תאימות הפסקות' : 'Break Compliance'}</span>
                   <div className="flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 text-yellow-500" />
-                    <span className="text-yellow-600 font-medium">92%</span>
+                    <AlertTriangle className="w-4 h-4 text-gray-400" />
+                    <span className="text-gray-500 font-medium">—</span>
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600 dark:text-gray-300">{language === 'he' ? 'התראות שעות נוספות' : 'Overtime Alerts'}</span>
                   <div className="flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 text-red-500" />
-                    <span className="text-red-600 font-medium">{language === 'he' ? '3 פעילות' : '3 Active'}</span>
+                    <AlertTriangle className="w-4 h-4 text-gray-400" />
+                    <span className="text-gray-500 font-medium">{language === 'he' ? '0 פעילות' : '0 Active'}</span>
                   </div>
                 </div>
               </div>
@@ -636,7 +880,11 @@ export default function Dashboard() {
                       <div className={isRTL ? 'text-right' : 'text-left'}>
                         {dept.issues.map((issue, idx) => (
                           <div key={idx} className={`text-xs text-gray-600 dark:text-gray-300 flex items-center gap-1 ${isRTL ? 'flex-row-reverse' : 'flex-row'}`}>
-                            <AlertTriangle className="w-3 h-3" />
+                            {dept.status === 'empty' ? (
+                              <Users className="w-3 h-3" />
+                            ) : (
+                              <AlertTriangle className="w-3 h-3" />
+                            )}
                             {issue}
                           </div>
                         ))}
@@ -657,43 +905,66 @@ export default function Dashboard() {
                 {language === 'he' ? 'פעולות קריטיות נדרשות' : 'Critical Actions Needed'}
               </h3>
               <div className="space-y-3">
-                <div className={`p-3 bg-red-50 border border-red-200 rounded-lg ${isRTL ? 'text-right' : 'text-left'}`}>
-                  <div className={`flex items-center gap-2 mb-1 ${isRTL ? 'flex-row-reverse' : 'flex-row'}`}>
-                    <AlertTriangle className="w-4 h-4 text-red-600" />
-                    <span className="text-sm font-medium text-red-800 dark:text-red-200">
-                      {language === 'he' ? 'מחלקת אבטחה' : 'Security Department'}
-                    </span>
+                {criticalDepartments > 0 || needAttentionDepartments > 0 || companyData.pendingApprovals > 0 ? (
+                  <>
+                    {criticalDepartments > 0 && (
+                      <div className={`p-3 bg-red-50 border border-red-200 rounded-lg ${isRTL ? 'text-right' : 'text-left'}`}>
+                        <div className={`flex items-center gap-2 mb-1 ${isRTL ? 'flex-row-reverse' : 'flex-row'}`}>
+                          <AlertTriangle className="w-4 h-4 text-red-600" />
+                          <span className="text-sm font-medium text-red-800 dark:text-red-200">
+                            {language === 'he' ? 'מחלקת אבטחה' : 'Security Department'}
+                          </span>
+                        </div>
+                        <p className="text-xs text-red-700 dark:text-red-300">
+                          {language === 'he' ? 'נדרש מנהל מיד' : 'Manager needed immediately'}
+                        </p>
+                        <button 
+                          className="mt-2 text-xs text-red-800 dark:text-red-200 hover:text-red-900 dark:hover:text-red-100 font-medium underline"
+                          onClick={() => navigate('/schedules')}
+                          aria-label="Go to schedules page to take action"
+                        >
+                          {language === 'he' ? 'בצע פעולה ←' : 'Take Action →'}
+                        </button>
+                      </div>
+                    )}
+                    
+                    {companyData.pendingApprovals > 0 && (
+                      <div className={`p-3 bg-yellow-50 border border-yellow-200 rounded-lg ${isRTL ? 'text-right' : 'text-left'}`}>
+                        <div className={`flex items-center gap-2 mb-1 ${isRTL ? 'flex-row-reverse' : 'flex-row'}`}>
+                          <Clock className="w-4 h-4 text-yellow-600" />
+                          <span className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                            {language === 'he' ? 'אישורים ממתינים' : 'Pending Approvals'}
+                          </span>
+                        </div>
+                        <p className="text-xs text-yellow-700 dark:text-yellow-300">
+                          {language === 'he' ? 'בקשות חופשה ושינוי משמרות' : 'Time-off and shift requests'}
+                        </p>
+                        <button 
+                          className="mt-2 text-xs text-yellow-800 dark:text-yellow-200 hover:text-yellow-900 dark:hover:text-yellow-100 font-medium underline"
+                          onClick={() => navigate('/schedules')}
+                          aria-label="Go to schedules page to review pending approvals"
+                        >
+                          {language === 'he' ? 'בדוק עכשיו ←' : 'Review Now →'}
+                        </button>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className={`p-6 text-center ${isRTL ? 'text-right' : 'text-left'}`}>
+                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <CheckCircle className="w-6 h-6 text-green-600" />
+                    </div>
+                    <h4 className="font-medium text-gray-900 mb-2">
+                      {language === 'he' ? 'הכל נראה טוב!' : 'Everything looks good!'}
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      {language === 'he' 
+                        ? 'אין פעולות קריטיות נדרשות כרגע'
+                        : 'No critical actions needed right now'
+                      }
+                    </p>
                   </div>
-                  <p className="text-xs text-red-700 dark:text-red-300">
-                    {language === 'he' ? 'נדרש מנהל מיד' : 'Manager needed immediately'}
-                  </p>
-                  <button 
-                    className="mt-2 text-xs text-red-800 dark:text-red-200 hover:text-red-900 dark:hover:text-red-100 font-medium underline"
-                    onClick={() => navigate('/schedules')}
-                    aria-label="Go to schedules page to take action"
-                  >
-                    {language === 'he' ? 'בצע פעולה ←' : 'Take Action →'}
-                  </button>
-                </div>
-                
-                <div className={`p-3 bg-yellow-50 border border-yellow-200 rounded-lg ${isRTL ? 'text-right' : 'text-left'}`}>
-                  <div className={`flex items-center gap-2 mb-1 ${isRTL ? 'flex-row-reverse' : 'flex-row'}`}>
-                    <Clock className="w-4 h-4 text-yellow-600" />
-                    <span className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
-                      {language === 'he' ? 'אישורים ממתינים' : 'Pending Approvals'}
-                    </span>
-                  </div>
-                  <p className="text-xs text-yellow-700 dark:text-yellow-300">
-                    {language === 'he' ? 'בקשות חופשה ושינוי משמרות' : 'Time-off and shift requests'}
-                  </p>
-                  <button 
-                    className="mt-2 text-xs text-yellow-800 dark:text-yellow-200 hover:text-yellow-900 dark:hover:text-yellow-100 font-medium underline"
-                    onClick={() => navigate('/schedules')}
-                    aria-label="Go to schedules page to review pending approvals"
-                  >
-                    {language === 'he' ? 'בדוק עכשיו ←' : 'Review Now →'}
-                  </button>
-                </div>
+                )}
               </div>
             </div>
           </div>
