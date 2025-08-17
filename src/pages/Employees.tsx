@@ -204,21 +204,39 @@ export default function EmployeesSimple() {
           return;
         }
 
-        // For real companies, load from Firestore
-        const employeesQuery = query(
-          collection(db, 'employees'),
-          where('companyId', '==', currentCompany.id)
-        );
-        
-        const snapshot = await getDocs(employeesQuery);
-        const employeesList = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        
-        setEmployees(employeesList);
+        // For real companies, try to load from Firestore first
+        try {
+          const employeesQuery = query(
+            collection(db, 'employees'),
+            where('companyId', '==', currentCompany.id)
+          );
+          
+          const snapshot = await getDocs(employeesQuery);
+          const firestoreEmployees = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          
+          // Also load from localStorage as fallback
+          const localEmployees = JSON.parse(localStorage.getItem(`employees_${currentCompany.id}`) || '[]');
+          
+          // Combine and deduplicate (Firestore takes priority)
+          const allEmployees = [...firestoreEmployees];
+          localEmployees.forEach(localEmp => {
+            if (!firestoreEmployees.find(fsEmp => fsEmp.email === localEmp.email)) {
+              allEmployees.push(localEmp);
+            }
+          });
+          
+          setEmployees(allEmployees);
+        } catch (firestoreError) {
+          console.warn('Firestore access denied, loading from localStorage:', firestoreError);
+          // Fallback to localStorage only
+          const localEmployees = JSON.parse(localStorage.getItem(`employees_${currentCompany.id}`) || '[]');
+          setEmployees(localEmployees);
+        }
       } catch (error) {
-        console.warn('Error loading employees from Firestore:', error);
+        console.warn('Error loading employees:', error);
         // Fallback to empty array for new companies
         setEmployees([]);
       } finally {
@@ -256,7 +274,7 @@ export default function EmployeesSimple() {
         return;
       }
 
-      // For real companies, save to Firestore
+      // For real companies, try to save to Firestore
       const employeeToSave = {
         ...employeeData,
         companyId: currentCompany.id,
@@ -264,14 +282,31 @@ export default function EmployeesSimple() {
         createdBy: user?.id
       };
 
-      const docRef = await addDoc(collection(db, 'employees'), employeeToSave);
-      
-      // Update local state with the new employee including Firestore ID
-      setEmployees(prev => [...prev, { ...employeeToSave, id: docRef.id }]);
+      try {
+        const docRef = await addDoc(collection(db, 'employees'), employeeToSave);
+        // Update local state with the new employee including Firestore ID
+        setEmployees(prev => [...prev, { ...employeeToSave, id: docRef.id }]);
+      } catch (firestoreError) {
+        console.warn('Firestore permission denied, using local storage fallback:', firestoreError);
+        // Fallback to local state with generated ID
+        const employeeWithId = { ...employeeToSave, id: Date.now().toString() };
+        setEmployees(prev => [...prev, employeeWithId]);
+        
+        // Store in localStorage as backup
+        const existingEmployees = JSON.parse(localStorage.getItem(`employees_${currentCompany.id}`) || '[]');
+        existingEmployees.push(employeeWithId);
+        localStorage.setItem(`employees_${currentCompany.id}`, JSON.stringify(existingEmployees));
+      }
     } catch (error) {
       console.error('Error adding employee:', error);
       // Fallback to local state if Firestore fails
-      setEmployees(prev => [...prev, { ...employeeData, id: Date.now().toString() }]);
+      const employeeWithId = { ...employeeData, id: Date.now().toString(), companyId: currentCompany.id };
+      setEmployees(prev => [...prev, employeeWithId]);
+      
+      // Store in localStorage as backup
+      const existingEmployees = JSON.parse(localStorage.getItem(`employees_${currentCompany.id}`) || '[]');
+      existingEmployees.push(employeeWithId);
+      localStorage.setItem(`employees_${currentCompany.id}`, JSON.stringify(existingEmployees));
     }
   };
 
