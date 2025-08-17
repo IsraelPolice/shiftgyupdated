@@ -714,10 +714,14 @@ export default function EmployeesSimple() {
                 {/* Additional Info */}
                 <div className="space-y-1 text-xs text-gray-500 mb-4">
                   <div className="flex items-center gap-2">
-                    <span className="text-gray-500 dark:text-gray-400">Hired: {new Date(employee.hireDate).toLocaleDateString()}</span>
+                    <span className="text-gray-500 dark:text-gray-400">
+                      Hired: {employee.hireDate ? new Date(employee.hireDate).toLocaleDateString() : 'N/A'}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-gray-500 dark:text-gray-400">${employee.salaryRate.toLocaleString()} / {employee.salaryType}</span>
+                    <span className="text-gray-500 dark:text-gray-400">
+                      ${employee.salaryRate ? employee.salaryRate.toLocaleString() : 'N/A'} / {employee.salaryType || 'N/A'}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-gray-500 dark:text-gray-400">Last active: {employee.lastActive}</span>
@@ -808,7 +812,7 @@ export default function EmployeesSimple() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-sm text-gray-900">
-                          ${employee.salaryRate.toLocaleString()} / {employee.salaryType}
+                          ${employee.salaryRate ? employee.salaryRate.toLocaleString() : 'N/A'} / {employee.salaryType || 'N/A'}
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -906,7 +910,7 @@ export default function EmployeesSimple() {
                       <span className="text-gray-900">{selectedEmployee.department}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-900">Hired: {new Date(selectedEmployee.hireDate).toLocaleDateString()}</span>
+                      <span className="text-gray-600">Hired: {selectedEmployee.hireDate ? new Date(selectedEmployee.hireDate).toLocaleDateString() : 'N/A'}</span>
                     </div>
                   </div>
                 </div>
@@ -956,11 +960,15 @@ export default function EmployeesSimple() {
                 <div className="p-4 bg-gray-50 rounded-lg">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-gray-600">Salary Rate:</span>
-                    <span className="font-medium text-gray-900">${selectedEmployee.salaryRate.toLocaleString()} / {selectedEmployee.salaryType}</span>
+                    <span className="font-medium text-gray-900">
+                      ${selectedEmployee.salaryRate ? selectedEmployee.salaryRate.toLocaleString() : 'N/A'} / {selectedEmployee.salaryType || 'N/A'}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-gray-600">Hourly Equivalent:</span>
-                    <span className="font-medium text-gray-900">${getHourlyRate(selectedEmployee).toFixed(2)}/hr</span>
+                    <span className="font-medium text-gray-900">
+                      ${selectedEmployee.salaryRate ? getHourlyRate(selectedEmployee).toFixed(2) : 'N/A'}/hr
+                    </span>
                   </div>
                 </div>
               </div>
