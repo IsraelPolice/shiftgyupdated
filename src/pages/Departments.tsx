@@ -133,8 +133,13 @@ export default function Departments() {
   };
 
   const handleViewDepartment = (department) => {
-    // Navigate to employees page filtered by this department
-    navigate(`/employees?department=${encodeURIComponent(department.name)}`);
+    // Navigate to employees page with department filter
+    setSelectedDepartment(department.name);
+    navigate('/employees', { 
+      state: { 
+        filterDepartment: department.name 
+      } 
+    });
   };
 
   const handleEditDepartment = (department) => {
@@ -143,8 +148,13 @@ export default function Departments() {
   };
 
   const handleAddEmployeesToDepartment = (department) => {
-    // Navigate to employees page with add employee modal and pre-selected department
-    navigate(`/employees?action=add&department=${encodeURIComponent(department.name)}`);
+    // Navigate to employees page and trigger add employee modal
+    navigate('/employees', { 
+      state: { 
+        openAddModal: true,
+        preSelectedDepartment: department.name 
+      } 
+    });
   };
 
   const handleDeleteDepartment = async (departmentId) => {

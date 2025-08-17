@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useLocation } from 'react-router-dom';
 import AddEmployeeModal from '../components/employees/AddEmployeeModal';
 import InviteEmployeeModal from '../components/employees/InviteEmployeeModal';
 import BulkAccessModal from '../components/employees/BulkAccessModal';
@@ -172,6 +173,7 @@ export default function EmployeesSimple() {
   const [selectedTag, setSelectedTag] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const { currentCompany, user } = useAuth();
+  const location = useLocation();
   
   const [employees, setEmployees] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -188,6 +190,20 @@ export default function EmployeesSimple() {
   const { hasPermission } = useAuth();
   const [showTagTooltip, setShowTagTooltip] = useState(false);
 
+  // Handle navigation state from departments page
+  useEffect(() => {
+    if (location.state) {
+      if (location.state.filterDepartment) {
+        setSelectedDepartment(location.state.filterDepartment);
+      }
+      if (location.state.openAddModal) {
+        setIsModalOpen(true);
+        if (location.state.preSelectedDepartment) {
+          // This will be handled in the AddEmployeeModal component
+        }
+      }
+    }
+  }, [location.state]);
   // Load employees from Firestore
   useEffect(() => {
     const loadEmployees = async () => {
@@ -272,21 +288,38 @@ export default function EmployeesSimple() {
       if (!currentCompany?.id) return;
 
       try {
-        // For demo company, use mock data
-        if (currentCompany.id === 'company-1') {
-          const mockDepartments = [
-            { id: '1', name: 'Sales' },
-            { id: '2', name: 'Operations' },
-            { id: '3', name: 'Customer Service' },
-            { id: '4', name: 'Security' }
-          ];
-          setAvailableDepartments(mockDepartments);
-          return;
+        // Try to load from Firestore first
+        try {
+          const departmentsQuery = query(
+            collection(db, 'departments'),
+            where('companyId', '==', currentCompany.id)
+          );
+          
+          const snapshot = await getDocs(departmentsQuery);
+          const firestoreDepartments = snapshot.docs.map(doc => ({
+            id: doc.id,
+            name: doc.data().name,
+            ...doc.data()
+          }));
+          
+          // Also load from localStorage as fallback
+          const localDepartments = JSON.parse(localStorage.getItem(`departments_${currentCompany.id}`) || '[]');
+          
+          // Combine and deduplicate (Firestore takes priority)
+          const allDepartments = [...firestoreDepartments];
+          localDepartments.forEach(localDept => {
+            if (!firestoreDepartments.find(fsDept => fsDept.name === localDept.name)) {
+              allDepartments.push(localDept);
+            }
+          });
+          
+          setAvailableDepartments(allDepartments);
+        } catch (firestoreError) {
+          console.warn('Firestore access denied, loading departments from localStorage:', firestoreError);
+          // Fallback to localStorage only
+          const localDepartments = JSON.parse(localStorage.getItem(`departments_${currentCompany.id}`) || '[]');
+          setAvailableDepartments(localDepartments);
         }
-
-        // For real companies, load from localStorage
-        const localDepartments = JSON.parse(localStorage.getItem(`departments_${currentCompany.id}`) || '[]');
-        setAvailableDepartments(localDepartments);
       } catch (error) {
         console.warn('Error loading departments for filter:', error);
         setAvailableDepartments([]);
@@ -635,8 +668,8 @@ export default function EmployeesSimple() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">All Departments</option>
-                {departments.map(dept => (
-                  <option key={dept} value={dept}>{dept}</option>
+                {availableDepartments.map(dept => (
+                  <option key={dept.id || dept.name} value={dept.name}>{dept.name}</option>
                 ))}
               </select>
             </div>
@@ -1049,6 +1082,7 @@ export default function EmployeesSimple() {
           onSave={editingEmployee ? handleEditEmployee : handleAddEmployee}
           employee={editingEmployee}
           isEditing={!!editingEmployee}
+          preSelectedDepartment={location.state?.preSelectedDepartment}
         />
 
         {/* Bulk Access Modal */}

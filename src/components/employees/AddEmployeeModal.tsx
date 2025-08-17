@@ -23,9 +23,10 @@ interface AddEmployeeModalProps {
   onSave: (employee: any) => void;
   employee?: any;
   isEditing?: boolean;
+  preSelectedDepartment?: string;
 }
 
-export default function AddEmployeeModal({ isOpen, onClose, onSave, employee, isEditing = false }: AddEmployeeModalProps) {
+export default function AddEmployeeModal({ isOpen, onClose, onSave, employee, isEditing = false, preSelectedDepartment }: AddEmployeeModalProps) {
   const { updateEmployeeConfig } = usePresence();
   const [showSendAccessModal, setShowSendAccessModal] = useState(false);
   const [savedEmployeeData, setSavedEmployeeData] = useState<any>(null);
@@ -37,7 +38,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onSave, employee, is
     email: employee?.email || '',
     phone: employee?.phone || '',
     role: employee?.role || '',
-    department: employee?.department || '',
+    department: employee?.department || preSelectedDepartment || '',
     tags: employee?.tags || [],
     hireDate: employee?.hireDate || '',
     salaryType: employee?.salaryType || 'hourly',
